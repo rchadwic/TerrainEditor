@@ -1,0 +1,312 @@
+﻿#options li
+{
+    display: inline;
+    list-style-type: none;
+    padding-right: 20px;
+}
+.PanelLayoutContainer
+{
+    background-color: white;
+    margin: 0 auto;
+    position: relative;
+    width: 855px;
+}
+
+.LRPanelLayout
+{
+    position: absolute;
+    z-index: 1;
+    text-align: center;
+    display: inline-block;
+}
+
+.Right
+{
+    left: 50%;
+}
+
+.ui-progressbar
+{
+    width: 150px;
+    height: 10px;
+    font-size: 1px;
+}
+
+#UploadControl
+{
+    width: 900px;
+}
+  
+.message
+{
+    font-size: 0.9em;
+    font-weight: normal;
+}
+
+#UploadStatusArea
+{
+    line-height: 15px;
+    text-align: left;
+    margin-right: 50px;
+    position: relative;
+    top: 75px;
+    left: 35px;
+}
+
+#DetailsAndStatusPanel
+{
+    display: none;
+}
+
+
+.ThumbnailButtonText
+{
+    position: relative; 
+    display:inline-block;
+    width: 50px;
+    top: -5px; 
+    font-weight:bold; 
+    text-align:left;
+}
+
+.Step1Input
+{
+    width: 325px;
+}
+
+.rpTemplate
+{
+    overflow: hidden;
+}
+
+
+.LoadingImageContainer
+{
+    background: url('images/Icons/loadingThumbnail.gif') no-repeat center;
+    width: 200px;
+    height: 200px;
+}
+
+.NextButton
+{
+    background: transparent url('images/3DR-Next_Btn.png') no-repeat;
+    width: 124px;
+    height: 41px;
+    display: block;
+}
+
+.NextButton:hover
+{
+    background-position: 0px -42px;
+}
+
+.NextButton:active
+{
+    background-position: 0px -84px;
+}
+
+.BackButton
+{
+    background: transparent url('images/3DR-Back_Btn.png') no-repeat;
+    width: 124px;
+    height: 41px;
+    display: block;
+}
+
+.BackButton:hover
+{
+    background-position: 0px -42px;
+}
+
+.BackButton:active
+{
+    background-position: 0px -84px;
+}
+
+
+.SnapshotButton
+{
+    background: transparent url('images/Snapshot-Button.png') no-repeat;
+    width: 50px;
+    height: 50px;
+    display: inline-block;
+    position: relative;
+    left: -20px;
+}
+
+.SnapshotButton:hover
+{
+    background-position: 0px -50px;
+}
+
+.SnapshotButton:active
+{
+    background-position: 0px -100px;
+    outline: none;
+}
+
+.ui-accordion .ui-accordion-content
+{
+    padding: 1.0em 0.8em;
+}
+
+.progressbarContainer
+{
+    width: 150px;
+    margin: 0 auto;
+}
+
+.ValidationError
+{
+    font-size: 0.8em;
+    color: Red;
+    display: none;
+    text-align: center;
+    width: 400px;
+}
+
+/* Details Panel Form style */
+.cc
+{
+    font-size: 0.9em;
+}
+
+.formLayout
+{
+    height: 250px;
+    overflow: hidden;
+}
+
+.Step3Input
+{
+    position: relative;
+    width: 400px;
+    top: 46px;
+    left: 20px;
+}
+
+.formLayout label, .formLayout input
+{
+    display: block;
+    float: left;
+    margin-bottom: 10px;
+}
+
+.formLayout label
+{
+    text-align: right;
+    padding-right: 20px;
+    width: 120px;
+}
+
+.formLayout input
+{
+    width: 240px;
+}
+
+.formLayout br
+{
+    clear: left;
+}
+
+#LicenseType
+{
+    width: 350px;
+    font-size: 0.9em;
+    vertical-align: top;
+}
+
+#LicenseImageContainer
+{
+    width: 88px;
+    display: inline;
+    margin-left: 20px;
+}
+
+/* Style for putting the tabs on the bottom */
+#DetailsTabs
+{
+    height: 340px;
+    margin-bottom: 10px;
+}
+
+.ui-tabs .ui-tabs-panel
+{
+    padding: 0 0;
+}
+
+.tabs-bottom
+{
+    position: relative;
+}
+.tabs-bottom .ui-tabs-panel
+{
+    /*height: 140px;*/
+    overflow: auto;
+}
+.tabs-bottom .ui-tabs-nav
+{
+    position: absolute !important;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    padding: 0 0.2em 0.2em 0;
+}
+.tabs-bottom .ui-tabs-nav li
+{
+    margin-top: -2px !important;
+    margin-bottom: 1px !important;
+    border-top: none;
+    border-bottom-width: 1px;
+}
+.ui-tabs-selected
+{
+    margin-top: -3px !important;
+}
+.ui-state-focus
+{
+    outline: none;
+}
+
+.ui-accordion .ui-accordion-content
+{
+    overflow: hidden;
+}
+
+#DetailsTabs .ui-widget-content
+{
+    border: none;
+}
+
+
+#SubmittingModalWindow .ui-dialog-titlebar-close 
+{
+    display:none;
+}
+
+.Step3UploadStatus
+{
+    left: 195px;
+    position: relative;
+
+}
+
+.previewImage 
+{
+    vertical-align: middle;
+}
+
+.ImagePreviewArea
+{
+    display:block; 
+    position: absolute; 
+    width: 200px; 
+    top: -12px; 
+    right: 27px
+}
+
+#viewer
+{
+    left: 22px !important;
+    margin: 22px 0;
+}

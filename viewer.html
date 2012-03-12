@@ -1,0 +1,376 @@
+<html>
+
+<head>
+<style>
+body {
+	background: black;
+	overflow: hidden;
+	padding: 0;
+	margin: 0;
+	color: white;
+}
+
+a:link {
+	text-decoration: none;
+	color: grey;
+}
+
+a:visited {
+	text-decoration: none;
+	color: grey
+}
+
+a:active {
+	text-decoration: none;
+	color: grey
+}
+
+a:hover {
+	text-decoration: underline;
+	color: grey
+}
+
+#ViewContainer {
+	position: absolute;
+}
+</style>
+
+<title>Weg GL Terrain Editor</title>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+<script type="text/javascript" src="./Scripts/OSGJS/js/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/jquery.mousewheel.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/jquery-ui-1.8.18.custom.min.js"></script>
+
+
+
+<script type="text/javascript" src="./Scripts/OSGJS/js/stats.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/webgl-utils.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/osg.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/osgUtil.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/osgAnimation.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/osgGA.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/osgViewer.js"></script>
+<script type="text/javascript" src="./Scripts/main.js"></script>
+<script type="text/javascript" src="./Scripts/drawing.js"></script>
+<script type="text/javascript" src="./Scripts/landscape.js"></script>
+<script type="text/javascript" src="./Scripts/ambientoccclusion.js"></script>
+<script type="text/javascript" src="./Scripts/softshadows.js"></script>
+<link href="styles/jquery-ui-1.8.18.custom.css" type="text/css" rel="stylesheet">
+<script type="text/javascript">
+var _brushcontext;
+
+function AutoMix()
+{
+    WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],0]);
+    $("#AutoMix").html('Auto');
+}
+function CustomMix()
+{
+    WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],1]);
+    $("#AutoMix").html('Custom');
+}
+
+function saveImageAs (imgOrURL) {
+    if (typeof imgOrURL == 'object')
+      imgOrURL = imgOrURL.src;
+    window.win = open (imgOrURL);
+    setTimeout('win.document.execCommand("SaveAs")', 500);
+  }
+  
+$(document).ready(function(){
+    
+  
+   
+   
+    $("#Textured").button({label:"Textured"});
+    $("#Textured").click(function(){
+		if($("#Textured").html()=="Textured")
+	    {
+			WebGL.gRenderOptionsUniform.set([1,WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			$("#Textured").html("Relief");
+	    }else
+		{
+			WebGL.gRenderOptionsUniform.set([0,WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			$("#Textured").html("Textured");
+		
+		}
+    });
+    $("#Textured").html("Textured");
+    
+    $("#ShadowsOn").button({label:"On"});
+    $("#ShadowsOn").click(function(){
+		if($("#ShadowsOn").html()=="Off")
+	    {
+			WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],1,WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			$("#ShadowsOn").html("On");
+	    }else
+		{
+			WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],0,WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			$("#ShadowsOn").html("Off");
+		}
+    });
+    $("#ShadowsOn").html("On");
+       
+    $("#NormalOn").button({label:"On"});
+    $("#NormalOn").click(function(){
+		if($("#NormalOn").html()=="Off")
+		    {
+				WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],WebGL.gRenderOptionsUniform.data[1],1,WebGL.gRenderOptionsUniform.data[3]]);
+				$("#NormalOn").html('On');
+		    }else
+			{
+			WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],WebGL.gRenderOptionsUniform.data[1],0,WebGL.gRenderOptionsUniform.data[3]]);
+			$("#NormalOn").html('Off');
+			}
+		});
+    $("#NormalOn").html('On');
+    
+    $("#BrushDraw").button({label:"Pull"});
+    $("#BrushDraw").click(function(){drawtarget="Height";brushmode=0.0;});
+    $("#BrushDraw").html('Pull');
+    
+    
+    $("#BrushTexture1").button({label:"Tex 1"});
+    $("#BrushTexture1").click(function(){CustomMix();drawtarget="Texture";WebGL.TexturePaintChoice.set([1,0,0,0]);});
+    $("#BrushTexture2").button({label:"Tex 2"});
+    $("#BrushTexture2").click(function(){CustomMix();drawtarget="Texture";WebGL.TexturePaintChoice.set([0,1,0,0]);});
+    $("#BrushTexture3").button({label:"Tex 3"});
+    $("#BrushTexture3").click(function(){CustomMix();drawtarget="Texture";WebGL.TexturePaintChoice.set([0,0,1,0]);});
+    $("#BrushTexture4").button({label:"Tex 4"});
+    $("#BrushTexture4").click(function(){CustomMix();drawtarget="Texture";WebGL.TexturePaintChoice.set([0,0,0,1]);});
+    
+    $("#BrushTexture1").html('A');
+    $("#BrushTexture2").html('B');
+    $("#BrushTexture3").html('C');
+    $("#BrushTexture4").html('D');
+    
+    $("#BrushBlur").button({label:"Smooth"});
+    $("#BrushBlur").click(function(){drawtarget="Height";brushmode=1.0;});
+    $("#BrushBlur").html('Smooth');
+    $("#BrushSet").button({label:"Set"});
+    $("#BrushSet").click(function(){drawtarget="Height";brushmode=2.0;});
+    $("#BrushSet").html('Set');
+    $("#BrushNoise").button({label:"Noise"});
+    $("#BrushNoise").click(function(){drawtarget="Height";brushmode=3.0;});
+    $("#BrushNoise").html('Noise');
+    
+    $("#Material1").button({label:"Material 1"});
+    $("#Material1").click(function(){WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex1);WebGL.TerrainState.setTexture(5,WebGL.NormalTex1);});
+    $("#Material1").html('Jungle');
+    
+    $("#Material2").button({label:"Material 2"});
+    $("#Material2").click(function(){WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex2);WebGL.TerrainState.setTexture(5,WebGL.NormalTex2);});
+    $("#Material2").html('Mountains');
+    
+    $("#Material3").button({label:"Material 2"});
+    $("#Material3").click(function(){WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex3);WebGL.TerrainState.setTexture(5,WebGL.NormalTex3);});
+    $("#Material3").html('Desert');
+    
+   
+   
+    $("#AutoMix").button({label:"Auto"});
+    $("#AutoMix").click(function(){
+		if($("#AutoMix").html()=="Auto")
+		{
+		    CustomMix();
+			$("#AutoMix").html('Custom');
+		}else
+		{
+			AutoMix();
+			$("#AutoMix").html('Auto');
+		}
+		    
+	});
+    $("#AutoMix").html('Auto');
+    
+    $("#UpdateHeightmap").button({label:"Height"});
+    $("#UpdateHeightmap").click(function(){
+		
+	var gl = WebGL.gviewer.gl;
+        gl.pixelStorei(gl["UNPACK_PREMULTIPLY_ALPHA_WEBGL"], false);
+        gl.pixelStorei(gl["UNPACK_COLORSPACE_CONVERSION_WEBGL"], false);
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.DrawBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+	WebGL.gviewer.canvas.height = 1024;
+	WebGL.gviewer.canvas.width = 1280;
+	});
+    $("#UpdateHeightmap").html('Height');
+    
+    $("#UpdateTexturemap").button({label:"Texture"});
+    $("#UpdateTexturemap").click(function(){
+		
+	var gl = WebGL.gviewer.gl;
+        gl.pixelStorei(gl["UNPACK_PREMULTIPLY_ALPHA_WEBGL"], false);
+        gl.pixelStorei(gl["UNPACK_COLORSPACE_CONVERSION_WEBGL"], false);
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.DrawTextureBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = 1024;
+			WebGL.gviewer.canvas.width = 1280;
+	});
+    $("#UpdateTexturemap").html('Texture');
+    
+    $("#UpdatePickmap").button({label:"Pick"});
+    $("#UpdatePickmap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.PickBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = 1024;
+			WebGL.gviewer.canvas.width = 1280;
+	});
+    $("#UpdatePickmap").html('Pick');
+    
+    $("#UpdateShadowmap").button({label:"Shadow"});
+    $("#UpdateShadowmap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.ShadowTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = 1024;
+			WebGL.gviewer.canvas.width = 1280;
+	});
+    $("#UpdateShadowmap").html('Shadow');
+    
+    $("#render").button({label:"R"});
+    $("#render").click(function(){
+		
+	
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+			WebGL.gviewer.canvas.height = 1024;
+			WebGL.gviewer.canvas.width = 1280;
+		    
+	});
+    $("#render").html('R');
+    
+    $("#l").button({label:"L"});
+    $("#l").click(function(){
+	   
+	
+		var load = osg.Texture.create("file:///C:\\Development\\HTML5Game\\Assets\\Textures\\download.png");
+		load.image.onload = function()
+		{
+		    	var gl = WebGL.gviewer.gl;
+		        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+		        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, false);
+		        gl.bindTexture(gl.TEXTURE_2D, WebGL.DrawBufferTexture.textureObject);
+		        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, load.image);
+		    
+		}
+	});
+    $("#l").html('L');
+    
+    
+    
+    $("#BrushStregnth").slider({min:-.005,max:.005,step:.0001,label:"Size",slide:function(event, ui){
+	    brushstrength = ui.value;
+	}});
+    
+    $("#BrushFalloff").slider({min:0,max:2,step:.001,label:"Size",slide:function(event, ui){
+		brushfalloff = ui.value;
+	}});
+    
+    $("#BrushSize").slider({min:1,max:200,label:"Size",slide:function(event, ui){
+	    brushsize = ui.value * 2;
+    }});
+    
+    $('#BrushSize').slider("option","value", 80);
+    brushsize = 160;
+    $('#BrushStregnth').slider("option","value", .01);
+    brushstrength = .01; 
+    $('#BrushFalloff').slider("option","value", 1);
+    brushfalloff = 1;
+    
+    $("#Rendering").dialog({title:"View Options",position:[240,0],width:160});
+    $("#HeightmapPreview").dialog({height:250,width:230,title:"Height Map",position:[0,0]});
+    $("#Material").dialog({title:"Material Options",position:[795,0],width:170});
+    $("#Brushoptions").dialog({title:"Brush Options",position:[980,0]});
+    //$("#StatsDiv").dialog({title:"Stats",position:[880,0]});
+});
+</script>
+
+</head>
+
+
+
+<body style="font-size:10px">
+
+	
+	<div id="canvas_Wrapper" >
+		<canvas id="WebGLCanvas" style="border: none ;" width="1280" height="1024">
+		
+		</canvas>
+		<div id="Brushoptions" style="color:black;top:0px;left:0px">
+			Size<div id="BrushSize" ></div>
+			Strength<div id="BrushStregnth" ></div>
+			Falloff<div id="BrushFalloff" ></div>
+			</br>Terrain:</br>
+			<div id="BrushDraw" style="width:50px"></div>
+			<div id="BrushBlur" style="width:50px"></div>
+			<div id="BrushSet" style="width:50px"></div>	
+			<div id="BrushNoise" style="width:50px"></div>		
+			<div id="BrushHeight" style="width:50px"></div>	
+			</br>Texture:</br>
+			<div id="BrushTexture1" style="width:50px"></div>
+			<div id="BrushTexture2" style="width:50px"></div>	
+			<div id="BrushTexture3" style="width:50px"></div>	
+			<div id="BrushTexture4" style="width:50px"></div>					
+			
+		</div>
+		<div id="Rendering" style="color:black;top:0px;left:0px">
+		
+		<table style="color:black;font-size:10px">
+				<tr><td>Mapping:</td><td> <div id="Textured" ></div></td></tr>
+				<tr><td>Shadows:</td><td> <div id="ShadowsOn" ></div></td></tr>
+				<tr><td>Normal Map:</td><td> <div id="NormalOn" ></div></td></tr>
+				<tr><td>Texture:</td><td> <div id="AutoMix" ></div></td></tr>
+		</table>
+		
+		</div>
+		<div id="Material" style="color:black;top:0px;left:0px">
+		
+				<div id="Material1" ></div>
+				<div id="Material2" ></div>
+				<div id="Material3" ></div>
+
+		</div>
+		<div id="HeightmapPreview" style="color:black;top:0px;left:0px">
+		<img id="heightmap" style="background-color:black"width=200 height=200 onclick="saveImageAs(document.getElementById('heightmap'));"></br>
+		<div id="UpdateHeightmap" ></div>
+		<div id="UpdateTexturemap" ></div>
+		<div id="UpdatePickmap" ></div>
+		<div id="UpdateShadowmap" ></div>
+		<div id="l" ></div>
+		<div id="render" ></div>
+		</div>
+	</div>
+
+</body>
+
+</html>

@@ -1,0 +1,505 @@
+﻿/**
+ * Copyright 2011 U.S. Department of Defense
+
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+
+ *  http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
+BODY
+{
+    background-color: #FFFFFF;
+    font-family: Arial, Verdana, sans-serif;
+    font-size: medium;
+    color: #333333;
+    margin: 0;
+    padding: 0;
+}
+
+INPUT, TEXTAREA, SELECT
+{
+    font-family: Arial;
+    font-size: medium;
+}
+/* Print Definitions */
+@media Print
+{
+    .noprint
+    {
+        display: none;
+    }
+}
+.DisplayImage
+{
+    height: 100px;
+    width: 100px;
+}
+.HeaderContainer
+{
+    height: 145px;
+    position: relative;
+}
+.MenuContainer
+{
+    background-color: #EEEEEE;
+    padding: 5px;
+}
+.BodyContainer
+{
+    margin: auto;
+}
+.BodyContainer a,
+.BodyContainer a:hover,
+.BodyContainer a:visited
+{
+    color: #0E4F9C;
+}
+.FooterContainer
+{
+    text-align: center;
+    font-size: x-small;
+    margin: 0 auto;
+    width: 600px;
+}
+.SiteTitleLabel
+{
+    font-weight: bold;
+    font-size: xx-large;
+}
+
+.LoginFailureTextStyle
+{
+    color: red;
+    display: block;
+    font-weight: bold;
+    text-align: center;
+}
+A.LoginHyperlink, A.LoginHyperlink:visited, A.LoginHyperlink:active
+{
+    color: #006699;
+    font-weight: bold;
+    font-size: small;
+}
+
+A.LoginHyperlink:hover
+{
+    color: #3399ff;
+}
+A.LoginStatusHyperlink, A.LoginStatusHyperlink:visited, A.LoginStatusHyperlink:active
+{
+    color: #006699;
+    font-weight: bold;
+}
+
+A.LoginStatusHyperlink:hover
+{
+    color: #3399ff;
+}
+.LoginTitleTextStyle
+{
+    color: Black;
+    font-weight: bold;
+    font-size: larger;
+}
+
+A.Hyperlink, A.Hyperlink:visited, A.Hyperlink:active
+{
+    color: #0E4F9C;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+A.Hyperlink:hover
+{
+    color: #0E4F9C;
+}
+
+
+.ListTitle
+{
+    font-weight: bold;
+    background-color: gray; /*border-top: solid 2px #CCCCCC;*/
+    padding: 3px;
+    text-align: left;
+    color: white;
+}
+
+.ListTitle div
+{
+    margin-left: 5px;
+}
+
+.ModelTitle
+{
+    font-weight: bold;
+    font-size: x-large;
+}
+
+.FormLabel
+{
+    float: left;
+    font-weight: bold;
+    text-align: right;
+    vertical-align: top;
+}
+.FormLabelButton
+{
+    margin-left: 200px;
+}
+
+.FormLabelWide
+{
+    float: left;
+    width: 400px;
+    font-weight: bold;
+    text-align: right;
+    vertical-align: top;
+}
+
+.Red
+{
+    color: #FF0000;
+}
+
+/* Rating */
+.ratingStar
+{
+    font-size: 1pt;
+    width: 14px;
+    height: 14px;
+    margin: 0px;
+    padding: 0px;
+    cursor: pointer;
+    display: block;
+    background-repeat: no-repeat;
+}
+
+.filledRatingStar
+{
+    background-image: url(./styles/images/Star_filled.png);
+}
+
+.emptyRatingStar
+{
+    background-image: url(./styles/images/Star_empty.png);
+}
+
+.savedRatingStar
+{
+    background-image: url(./styles/images/Icons/Star_filled.png);
+}
+
+.ListViewTable TR TD
+{
+    text-align: center;
+}
+
+.TextBoxWatermark
+{
+    color: Gray;
+}
+
+
+
+.Bold
+{
+    font-weight: bold;
+}
+
+.ValidatorCallOutStyle
+{
+    background-color: #FFF68F;
+}
+
+.AdminPanel
+{
+    display: inline;
+}
+
+.HoverMenuStyle
+{
+    padding: 3px;
+    background-color: White;
+    border: solid 1px black;
+}
+
+.modalPopup
+{
+    background-color: #ffffdd;
+    border-width: 3px;
+    border-style: solid;
+    border-color: Gray;
+    padding: 3px;
+    width: 300px;
+}
+.modalBackground
+{
+    background-color: Gray; /*Added -ms- fix for validation error*/
+    -ms-filter: alpha(opacity=70);
+    -ms-opacity: 0.7;
+}
+
+.HyperLink2
+{
+    color: #0E4F9C;
+    font-size: 14px;
+}
+
+#UploadControl
+{
+    width: 800px;
+    text-align: center;
+    margin: auto;
+}
+
+.TextBox
+{
+    width: 330px;
+}
+
+.BlackBorder
+{
+    border: 1px solid black !important;
+}
+
+#ModelDetails
+{
+    width: 97%;
+    text-align: center;
+    margin: auto;
+}
+
+.CenteredTable
+{
+    margin: 0 auto;
+    text-align: left;
+}
+
+.CenteredTable tr td
+{
+    vertical-align: top;
+}
+
+
+
+#logoStrip
+{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    background: url(./images/3DR-Header-strip.png) repeat-x;
+    height: 145px;
+    width: 100%;
+    position: absolute;
+    z-index: 0;
+    text-align: center;
+}
+
+#LoginArea
+{
+    position: absolute;
+    margin: 7px 7px 0 0;
+    width: auto;
+    top: 0px;
+    right: 0px;
+    z-index: 1;
+    padding: 2px;
+    color: white;
+    font-size: 0.75em;
+    text-align: right;
+}
+
+#LoginArea a, #LoginArea a:visited, #LoginArea a:hover
+{
+    color: White;
+    font-size: 0.9em;
+}
+
+#mainMenuWrapper
+{
+    background: url(./images/MenuStrip.png) repeat-x transparent;
+    width: 100%;
+}
+
+.mainMenu
+{
+    margin-left: auto;
+    margin-right: auto;
+    width: 433px;
+    position: relative;
+    top: -2px;
+    left: -3px;
+    height: 25px;
+}
+
+.mainMenu a, .mainMenu a:hover, .mainMenu a:visited
+{
+    color: #FFFFFF;
+    font-family: "Segoe UI" ,Arial,Sans-Serif;
+    font-size: 0.8em;
+    padding: 0 5px;
+    position: relative;
+    text-decoration: none;
+    top: -8px;
+    vertical-align: middle;
+}
+
+.menu-item
+{
+    background-position: 1502px -2px;
+    background-image: url('MasterTabStrip/TabStripStates.png');
+    background-repeat: repeat-x;
+    height: 24px;
+    display: inline-block;
+    position: relative;
+    top: 2px;
+}
+
+.menu-item:hover
+{
+    background-position: -1502px -54px;
+}
+
+.menu-item:hover .menu-spacer
+{
+    background-position: 0 -54px;
+}
+
+.menu-spacer
+{
+    background-image: url('MasterTabStrip/TabStripStates.png');
+    background-position: 0px -2px;
+    width: 9px;
+    height: 24px;
+    display: inline-block;
+}
+
+.menu-spacer.right
+{
+    margin-left: 5px;
+    width: 1px;
+}
+
+.menu-spacer.start
+{
+    background-position: 1px -2px;
+}
+
+.menu-item:hover .menu-spacer.start
+{
+    background-position: 1px -54px;
+}
+
+
+.menu-spacer.end
+{
+    background-position: -2993px -2px;
+}
+
+
+.menu-item:hover .menu-spacer.end
+{
+    background-position: -2992px -54px;
+}
+
+.mainMenu .rtsLink, .mainMenu .rtsOut
+{
+    background-image: url(MasterTabStrip/TabStripStates.png) !important;
+    color: White !important;
+}
+
+
+#ContentWrapper
+{
+    background: url(./images/Short-Gradient.png) repeat-x;
+    height: 557px;
+    position: relative;
+    overflow: visible;
+}
+
+.front
+{
+    position: relative;
+    z-index: 1;
+}
+
+
+.SocialMediaBar
+{
+    width: 200px;
+    margin: 2px auto;
+}
+
+.ui-tabs-separator.last
+{
+    background: url("./styles/images/TabStripStates.png") repeat scroll -2998px -2px transparent;
+    display: inline-block;
+    height: 23px;
+    left: 7px;
+    position: relative;
+    width: 3px;
+}
+
+li.ui-state-hover .ui-tabs-separator.last
+{
+    background-position: -2998px -54px;
+}
+
+li.ui-state-active .ui-tabs-separator.last
+{
+    background-position: -2998px -27px !important;
+}
+
+li.first .ui-tabs-separator
+{
+    background-position: 1px -2px;
+}
+
+li.first.ui-state-hover .ui-tabs-separator
+{
+    background-position: 1px -54px;
+}
+
+#viewer
+{
+    width: 500px;
+    height: 500px;
+    position: relative;
+}
+
+:focus
+{
+    outline: 0;
+}
+
+
+.FooterLinks, .FooterLinks a, .FooterLinks a:hover, .FooterLinks a:visited
+{
+    color: Black;
+    font-size: 12px;
+}
+
+.model-teaser
+{
+    width: 200px;
+    height: 200px;
+    float: left;
+    margin: 20px 5px;
+    text-align: center;
+    background: none;
+    position: relative;
+    cursor: pointer;
+}
+.with-background
+{
+    background: url("./styles/images/outer-box.png")
+}

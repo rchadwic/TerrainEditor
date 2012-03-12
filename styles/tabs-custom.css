@@ -1,0 +1,112 @@
+﻿   .ui-tabs .ui-tabs-panel
+   {
+       border: 2px solid #3D556C;
+   }
+   
+   
+   .ui-tabs .ui-widget-header
+   {
+       background: none;
+       border: none;
+   }
+   
+   .ui-state-default, .ui-state-default .ui-widget-content, .ui-widget-header .ui-state-default
+   {
+       background: none;
+   }
+   
+   
+   .ui-tabs-nav
+   {
+       font-size: 0.8em;
+   }
+   
+   .ui-tabs .ui-tabs-nav
+   {
+       padding: 0;
+   }
+   .ui-widget-header .ui-state-default
+   {
+       background-image: url('../styles/images/TabStripStates.png');
+       background-position: 1498px 0;
+       border: none;
+       height: 23px;
+   }
+   
+   .ui-tabs .ui-tabs-nav li, .ui-tabs .ui-tabs-nav li a
+   {
+       margin: 0;
+       padding-top: 2px;
+       padding-bottom: 2px;
+       padding-right: 5px;
+       color:White;
+       font-family: "Segoe UI",Arial,sans-serif
+   }
+   
+   .ui-tabs .ui-tabs-nav li.ui-tabs-selected
+   {
+       background-position: 1498px -25px !important;
+       border: 1px solid black;
+   }
+   
+   .ui-tabs .ui-tabs-nav li.ui-state-hover
+   {
+       background-position: 1498px -52px;
+   }
+   
+   .ui-tabs .ui-tabs-nav li.ui-tabs-selected a
+   {
+       color: Black;
+   }
+   
+   .ui-tabs .ui-tabs-nav li a
+   {
+       padding: 0 1em;
+       position: relative;
+       top: -2px;
+   }
+   
+   .ui-tabs .ui-tabs-nav li a img
+   {
+       position: relative;
+       top: 4px;
+   }
+
+   
+   .tabContainer
+   {
+       position: relative;
+       top: 1px;
+   }
+   
+   .ui-tabs-separator
+   {
+       background-image: url('../styles/images/TabStripStates.png');
+       background-position: 0px -2px;
+       width: 3px;
+       height: 24px;
+       display: inline-block;
+       float: left;
+   }
+   
+   li.ui-tabs-selected .ui-tabs-separator
+   {
+       background-position: 0px -27px !important;
+   }
+   
+   li.ui-state-hover .ui-tabs-separator
+   {
+       background-position: 0px -54px;
+   }
+   
+   .ui-tabs-panel
+   {
+        height: auto;
+   }
+   
+   .ui-tabs-nav img
+   {
+       position: relative;
+       top: 3px;
+       border: none;
+   }

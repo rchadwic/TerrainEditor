@@ -46,7 +46,7 @@ function BuildSSBufferCamera() {
     quad.getOrCreateStateSet().addUniform(WebGL.AOSampleVec);
     WebGL.SSBufferCam.addChild(quad);
     
-    var diffusetex3 = osg.Texture.create("file:///C:\\Development\\HTML5Game\\Assets\\Textures\\noise.jpg");
+    var diffusetex3 = osg.Texture.create("./Assets/Textures/noise.jpg");
     quad.getOrCreateStateSet().setTexture(1, diffusetex3);
     quad.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(1,"noisemap"));
     quad.getOrCreateStateSet().addUniform(WebGL.gTimeUniform);
@@ -168,7 +168,7 @@ function GetSSShader() {
 	    "left = cross(norm,front);",
 	    "mat3 invtangentspace = transpose3(mat3(front,left,norm));",
 	    "vec4 noise = texture2D(noisemap,(oTC0+normalize(RandomVec).xy)*2.0)-.5;",
-	    "vec3 sunpos = vec3(5.0,5.0,5.0) + (noise.xyz-.5);",
+	    "vec3 sunpos = vec3(5.0,5.0,0.0) + (noise.xyz-.5);",
 	    "vec3 sundir = normalize(sunpos-vert.xyz)*(noise.r/2.0+.5);",
 	    "gl_FragColor = packFloatToVec4i(base + (TestVec(sundir,vert.xyz))/(aoframecount));",
 	    

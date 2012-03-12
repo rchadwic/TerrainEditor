@@ -47,7 +47,7 @@ function BuildAOBufferCamera() {
     quad.getOrCreateStateSet().addUniform(WebGL.AOSampleVec);
     WebGL.AOBufferCam.addChild(quad);
     
-    var diffusetex3 = osg.Texture.create("file:///C:\\Development\\HTML5Game\\Assets\\Textures\\noise.jpg");
+    var diffusetex3 = osg.Texture.create("./Assets/Textures/noise.jpg");
     quad.getOrCreateStateSet().setTexture(1, diffusetex3);
     quad.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(1,"noisemap"));
     quad.getOrCreateStateSet().addUniform(WebGL.gTimeUniform);

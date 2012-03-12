@@ -61,20 +61,20 @@ function SetupTerrainHeight()
 	   
 	    var newstateset = new osg.StateSet();
 	      
-	    var diffusetex1 = osg.Texture.create("file:///C:\\Development\\HTML5Game\\Assets\\Textures\\TerrainAtlasDiffuse1.png");
-	    var diffusetex2 = osg.Texture.create("file:///C:\\Development\\HTML5Game\\Assets\\Textures\\TerrainAtlasDiffuse2.png");
-	    var diffusetex3 = osg.Texture.create("file:///C:\\Development\\HTML5Game\\Assets\\Textures\\TerrainAtlasDiffuse3.png");
+	    var diffusetex1 = osg.Texture.create("./Assets/Textures/TerrainAtlasDiffuse1.png");
+	    var diffusetex2 = osg.Texture.create("./Assets/Textures/TerrainAtlasDiffuse2.png");
+	    var diffusetex3 = osg.Texture.create("./Assets/Textures/TerrainAtlasDiffuse3.png");
 	    newstateset.setTexture(0, diffusetex1);
 	    
-	    var watertex = osg.Texture.create("file:///C:\\Development\\HTML5Game\\Assets\\Textures\\water.jpg");
+	    var watertex = osg.Texture.create("./Assets/Textures/water.jpg");
 	    newstateset.setTexture(6, watertex);
 	   
 	    newstateset.addUniform(osg.Uniform.createInt1(6,"watermap"));
 	   
 
-	    var normaltex1 = osg.Texture.create("file:///C:\\Development\\HTML5Game\\Assets\\Textures\\TerrainAtlasNormal1.png");
-	    var normaltex2 = osg.Texture.create("file:///C:\\Development\\HTML5Game\\Assets\\Textures\\TerrainAtlasNormal2.png");
-	    var normaltex3 = osg.Texture.create("file:///C:\\Development\\HTML5Game\\Assets\\Textures\\TerrainAtlasNormal3.png");
+	    var normaltex1 = osg.Texture.create("./Assets/Textures/TerrainAtlasNormal1.png");
+	    var normaltex2 = osg.Texture.create("./Assets/Textures/TerrainAtlasNormal2.png");
+	    var normaltex3 = osg.Texture.create("./Assets/Textures/TerrainAtlasNormal3.png");
 	    newstateset.setTexture(5, normaltex1);
 	   
 	    WebGL.TerrainState = newstateset;
@@ -126,13 +126,15 @@ function GetLandscapeShader() {
 	    "uniform mat4 NormalMatrix;",
 	    "varying vec3 oNormal;",
 	    "varying vec2 oTC0;", 
-	 
+	    "varying mat3 invTanSpace;",
 	    "uniform mat4 shadowProjection;",
 	    "uniform mat4 inverseViewMatrix;",
 	    "varying vec4 oScreenPosition;",
 	    "varying vec4 oShadowSpaceVertex;",
 	    "varying vec3 oLightSpaceNormal;",
 	    "varying vec3 oLightDir;",
+	    "uniform vec3 camerapos;",
+	    "varying vec3 wViewRay;",
 	   // "varying vec3 oWorldPos;",
 	    "varying vec4 oWorldNormal;",
 	    "uniform vec4 RenderOptions;",
@@ -147,9 +149,15 @@ function GetLandscapeShader() {
 	    "  const vec4 bitSh = vec4(1.0/(256.0*256.0*256.0), 1.0/(256.0*256.0), 1.0/256.0, 1.0);",
 	    "  return(dot(value, bitSh));", "}", 
 	    "",
+	    "mat3 transpose3(mat3 val)" +
+	    "{" +
+	    "   return  mat3(vec3(val[0][0],val[0][1],val[0][2]),vec3(val[1][0],val[1][1],val[1][2]),vec3(val[2][0],val[2][1],val[2][2]));" +
+	    
+	    "}",
 	    "void main() {",
 	    "float z = unpackFloatFromVec4i(texture2D(heightmap,TexCoord0)) * 100.0;",
 	    "vec4 vert = vec4(Vertex.x,z + Vertex.y,Vertex.z,1.0);",
+	    "wViewRay = camerapos - vert.xyz;",
 	    "vec3 leftvert = vec3(Vertex.x + 1.0*(200.0/512.0),unpackFloatFromVec4i(texture2D(heightmap,TexCoord0 + vec2(1.0/512.0,0))) * 100.0 + Vertex.y,Vertex.z);",
 	    "vec3 frontvert = vec3(Vertex.x,unpackFloatFromVec4i(texture2D(heightmap,TexCoord0+ vec2(0,1.0/512.0))) * 100.0 + Vertex.y,Vertex.z+ 1.0*(200.0/512.0));",
 	    "vec3 left = normalize(leftvert - vert.xyz);",
@@ -158,6 +166,7 @@ function GetLandscapeShader() {
 	    "vec3 norm = normalize(cross(front,left));",
 	    "left = cross(norm,front);",
 	    "mat3 tangentspace = mat3(front,left,norm);",
+	    "invTanSpace = transpose3(tangentspace);",
 	    "gl_Position = ftransform(vert);",
 	    "oScreenPosition = gl_Position;",
 	    //"Normal = normalize(Normal);",
@@ -200,8 +209,11 @@ function GetLandscapeShader() {
 	    "uniform int time;",
 	    "uniform float FrameTime;",
 	    "uniform vec2 canvasSize;",
-	 
+	    "uniform vec3 camerapos;",
+	    "varying vec3 wViewRay;",
 	    "uniform mat4 shadowProjection;",
+	    "varying mat3 invTanSpace;",
+	    
 	    "varying vec4 oShadowSpaceVertex;",
 	    "varying vec4 oScreenPosition;",
 	    "varying vec3 oLightSpaceNormal;",
@@ -217,7 +229,33 @@ function GetLandscapeShader() {
 	    "vec4 mixdata;",
 	    "vec2 ScaledTC;",
 	    "float watermix;",
+	    "const vec3 dL00  = vec3( 1.04,  .76,  0.71);",
+	    "const vec3 dL1m1 = vec3( 0.44,  0.34,  0.34);",
+	    "const vec3 dL10  = vec3( -0.22,  -0.18,  -0.17);",
+	    "const vec3 dL11  = vec3(0.71, 0.54, 0.56);",
+	    "const vec3 dL2m2 = vec3(0.64, 0.50, 0.52);",
+	    "const vec3 dL2m1 = vec3( -0.12,  -0.09,  -0.08);",
+	    "const vec3 dL20  = vec3(-0.37, -0.28, -0.29);",
+	    "const vec3 dL21  = vec3(-0.17, -0.13, -0.13);",
+	    "const vec3 dL22  = vec3(0.55, 0.42, 0.42);",
+	    
+	  "const vec3 aL00  = vec3( 0.871297,  0.875222,  0.864470);",
+	  "const vec3 aL1m1 = vec3( 0.175058,  0.245335,  0.312891);",
+	  "const vec3 aL10  = vec3( 0.034675,  0.036107,  0.037362);",
+	  "const vec3 aL11  = vec3(-0.004629, -0.029448, -0.048028);",
+	  "const vec3 aL2m2 = vec3(-0.120535, -0.121160, -0.117507);",
+	  "const vec3 aL2m1 = vec3( 0.003242,  0.003624,  0.007511);",
+	  "const vec3 aL20  = vec3(-0.028667, -0.024926, -0.020998);",
+	  "const vec3 aL21  = vec3(-0.077539, -0.086325, -0.091591);",
+	  "const vec3 aL22  = vec3(-0.161784, -0.191783, -0.219152);",
+	  
+	    "const float C1 = 0.429043;",
+            "const float C2 = 0.511664;",
+            "const float C3 = 0.743125;",
+            "const float C4 = 0.886227;",
+            "const float C5 = 0.247708;",
 	    "",
+	    
 	    "float unpackFloatFromVec4i(const vec4 value)",
 	    "{",
 	    "  const vec4 bitSh = vec4(1.0/(256.0*256.0*256.0), 1.0/(256.0*256.0), 1.0/256.0, 1.0);",
@@ -308,7 +346,38 @@ function GetLandscapeShader() {
 	    "  res -= res.xxyz * bitMsk;",
 	    "  return res;",
 	    "}",
-	    
+	    "vec4 GetSHDirect(vec3 tnorm)",
+	    "{   ",
+	   
+	    "    vec3 DiffuseColor =  C1 * dL22 * (tnorm.x * tnorm.x - tnorm.y * tnorm.y) +",
+	    "                    C3 * dL20 * tnorm.z * tnorm.z +",
+	    "                    C4 * dL00 -",
+	    "                    C5 * dL20 +",
+	    "                    2.0 * C1 * dL2m2 * tnorm.x * tnorm.y +",
+	    "                    2.0 * C1 * dL21  * tnorm.x * tnorm.z +",
+	    "                    2.0 * C1 * dL2m1 * tnorm.y * tnorm.z +",
+	    "                    2.0 * C2 * dL11  * tnorm.x +",
+	    "                    2.0 * C2 * dL1m1 * tnorm.y + ",  
+	    "                    2.0 * C2 * dL10  * tnorm.z;",
+	        
+	    "    return vec4(DiffuseColor,1);",
+	    "}",
+	    "vec4 GetSHAmbient(vec3 tnorm)",
+	    "{   ",
+	   
+	    "    vec3 DiffuseColor =  C1 * aL22 * (tnorm.x * tnorm.x - tnorm.y * tnorm.y) +",
+	    "                    C3 * aL20 * tnorm.z * tnorm.z +",
+	    "                    C4 * aL00 -",
+	    "                    C5 * aL20 +",
+	    "                    2.0 * C1 * aL2m2 * tnorm.x * tnorm.y +",
+	    "                    2.0 * C1 * aL21  * tnorm.x * tnorm.z +",
+	    "                    2.0 * C1 * aL2m1 * tnorm.y * tnorm.z +",
+	    "                    2.0 * C2 * aL11  * tnorm.x +",
+	    "                    2.0 * C2 * aL1m1 * tnorm.y + ",  
+	    "                    2.0 * C2 * aL10  * tnorm.z;",
+	        
+	    "    return vec4(DiffuseColor,1);",
+	    "}",
 	    "vec4 GetDiffuseColor(){",
 	    
 	            
@@ -379,18 +448,31 @@ function GetLandscapeShader() {
 	    "if(RenderOptions[0] == 0.0)",
 	        "diffusetexture = GetDiffuseColor();",
 	    "float NdotL = 0.0;",
+	//    "if(RenderOptions[2] == 1.0)",
+	//    	"NdotL = dot(normalize(GetNormal()),normalize(oLightDir));" ,
+	//    "else" ,
+	//    	"NdotL = dot(normalize(oLightSpaceNormal),normalize(oLightDir));" ,
+	    "float light = min(clamp(shadow,0.0,1.0),clamp(NdotL,0.0,1.0))*1.0;",
+	    "vec4 ambient = vec4(.0,.0,.0,1.0);",
 	    "if(RenderOptions[2] == 1.0)",
-	    	"NdotL = dot(normalize(GetNormal()),normalize(oLightDir));" ,
-	    "else" ,
-	    	"NdotL = dot(normalize(oLightSpaceNormal),normalize(oLightDir));" ,
-	    
-	    "gl_FragColor =   min(clamp(shadow,0.1,1.0),clamp(NdotL,.1,1.0))*1.2 * diffusetexture;",
-	    "gl_FragColor = ao * mix(gl_FragColor,vec4(1.0,1.0,1.0,1.0),clamp(pow((oScreenPosition.z/oScreenPosition.w),42.0),0.0,1.0));",
+	    	"gl_FragColor =  GetSHAmbient(invTanSpace * GetNormal())/7.5 * diffusetexture * (1.0 - clamp(shadow,0.0,1.0)) +  clamp(shadow,0.0,1.0) * GetSHDirect(invTanSpace * GetNormal())/1.8 * diffusetexture;",
+	    "else",
+	    	"gl_FragColor =   GetSHAmbient(oWorldNormal.xyz)/7.5 * diffusetexture * (1.0 - clamp(shadow,0.0,1.0)) +  clamp(shadow,0.0,1.0) * GetSHDirect(oWorldNormal.xyz)/1.8 * diffusetexture;",
+	    "gl_FragColor *= ao;",
+	//    "float fogamount = 0.0;",
+	//    "for(float i = 0.0; i < 1.0; i += .1)" +
+	//    "{",
+	//    "vec2 fogtc = vec2((camerapos/200.0).x,-(camerapos/200.0).z) + vec2(.5,.5);",
+	//    "fogamount += unpackFloatFromVec4i(texture2D(shadowmap,oTC0 + (fogtc - oTC0) * i))/10.0;" +
+	//    "}",
+	//    "gl_FragColor = vec4(fogamount,fogamount,fogamount,1.0); return;",
+	    "gl_FragColor =  mix(gl_FragColor,GetSHDirect(normalize(-wViewRay)), clamp((100.0-(camerapos - wViewRay).y)/100.0 * pow(.0035*length(wViewRay),2.0),0.0,1.0));",
 	    "gl_FragColor.a = 1.0;",
 	    "float len = length(oTC0-PaintPos)/(PaintPosition.z/(512.0*4.0));",
 	    "len = clamp(0.0,1.0,len);",
 	    "len = pow(1.0-len,PaintOptions[0]);",
 	    "len = clamp(0.0,1.0,len);",
+	   
 	    "gl_FragColor = mix(gl_FragColor,vec4(1.0-((PaintPosition[3]+.002)*250.0),0.0,(PaintPosition[3]+.002)*250.0,1.0),len); ",
 	     "}" ].join('\n');
 

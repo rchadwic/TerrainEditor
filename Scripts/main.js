@@ -697,8 +697,11 @@ function UpdateCamera() {
     if(WebGL.gCamera)
 	{
 		
-	  
-	 	
+	if(WebGL.CameraPosUniform)
+	    {
+	WebGL.CameraPosUniform.set(osg.Vec3.add(WebGL.gCameraOffset,
+        	    WebGL.gCameraTarget));
+	    }
         	
         	WebGL.gCamera.setViewMatrix(osg.Matrix.makeLookAt(osg.Vec3.add(WebGL.gCameraOffset,
         	    WebGL.gCameraTarget), WebGL.gCameraTarget, WebGL.gUpVector));
@@ -2332,8 +2335,8 @@ function SetupRendering() {
     WebGL.gAnimatingRotation = false;
     WebGL.gviewer.scene.getOrCreateStateSet().setAttribute(new osg.FrameBufferObject());
    
-    
-    
+    WebGL.CameraPosUniform = osg.Uniform.createFloat3([ 1,0,0 ], 'camerapos');
+    WebGL.gCamera.getOrCreateStateSet().addUniform(WebGL.CameraPosUniform);
     WebGL.gPaintOptionsUniform = osg.Uniform.createFloat4([ 1,0,0,0 ], 'PaintOptions');
     WebGL.gPaintPositionUniform = osg.Uniform.createFloat4([ 0,0,10,1 ], 'PaintPosition');
     WebGL.gTimeUniform = osg.Uniform.createInt1([0],"time");

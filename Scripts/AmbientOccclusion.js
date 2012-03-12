@@ -169,10 +169,10 @@ function GetAOShader() {
 	    "left = cross(norm,front);",
 	    "mat3 invtangentspace = transpose3(mat3(front,left,norm));",
 	    "vec4 noise = texture2D(noisemap,(oTC0+normalize(RandomVec).xy)*2.0)-.5;",
-	    "noise.z = 0.055;",
+	    "noise.z = 0.005;",
 	    "noise *= 100.0;",
 	    "noise = normalize(noise);",
-	    "gl_FragColor = packFloatToVec4i(base + (TestVec(invtangentspace * noise.xyz*.2,vert.xyz))/(aoframecount));",
+	    "gl_FragColor = packFloatToVec4i(base + (TestVec(invtangentspace * noise.xyz*.4,vert.xyz))/(aoframecount));",
 	    
 	    
 	    "}" ].join('\n');

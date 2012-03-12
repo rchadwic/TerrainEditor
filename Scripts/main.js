@@ -561,7 +561,8 @@ function Mouseup(x, y,button) {
 	{
 	    WebGL.gviewer.scene.removeChild(WebGL.DrawBufferCam);
 	    WebGL.gviewer.scene.removeChild(WebGL.DrawTextureBufferCam);
-	    aoframecount = 0;
+	    if(drawtarget == "Height")
+		aoframecount = 0;
 	    WebGL.gCamera.addChild(WebGL.AOBufferCam);
 	    WebGL.gCamera.addChild(WebGL.SSBufferCam);
 	    WebGL.AOFrameCount.set([aoframecount]);

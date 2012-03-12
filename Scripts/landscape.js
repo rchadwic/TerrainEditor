@@ -159,7 +159,7 @@ function GetLandscapeShader() {
 	    "vec4 vert = vec4(Vertex.x,z + Vertex.y,Vertex.z,1.0);",
 	    "wViewRay = camerapos - vert.xyz;",
 	    "vec3 leftvert = vec3(Vertex.x + 1.0*(200.0/512.0),unpackFloatFromVec4i(texture2D(heightmap,TexCoord0 + vec2(1.0/512.0,0))) * 100.0 + Vertex.y,Vertex.z);",
-	    "vec3 frontvert = vec3(Vertex.x,unpackFloatFromVec4i(texture2D(heightmap,TexCoord0+ vec2(0,1.0/512.0))) * 100.0 + Vertex.y,Vertex.z+ 1.0*(200.0/512.0));",
+	    "vec3 frontvert = vec3(Vertex.x,unpackFloatFromVec4i(texture2D(heightmap,TexCoord0+ vec2(0,-1.0/512.0))) * 100.0 + Vertex.y,Vertex.z+ 1.0*(200.0/512.0));",
 	    "vec3 left = normalize(leftvert - vert.xyz);",
 	    "vec3 front = normalize(frontvert - vert.xyz);",
 	    

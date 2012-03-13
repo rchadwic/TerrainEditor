@@ -104,6 +104,10 @@ function SetupTerrainHeight()
 	    newstateset.setTextureAttribute(4,WebGL.AOBufferTexture);
 	    newstateset.setTextureAttribute(3,WebGL.SSBufferTexture);
 	    newstateset.addUniform(osg.Uniform.createInt1(4,"aomap"));
+	    
+	    newstateset.setTexture(8,WebGL.GodRaysBufferTexture); 
+	    newstateset.addUniform(osg.Uniform.createInt1(8,"godraysmap"));
+	    
 	    gLandscape.setStateSet(newstateset);
 	        
 	        
@@ -206,6 +210,7 @@ function GetLandscapeShader() {
 	    "uniform sampler2D normalmap;",
 	    "uniform sampler2D mixmap;",
 	    "uniform sampler2D aomap;",
+	    "uniform sampler2D godraysmap;",
 	    "uniform int time;",
 	    "uniform float FrameTime;",
 	    "uniform vec2 canvasSize;",
@@ -424,11 +429,11 @@ function GetLandscapeShader() {
 	 
 	    "}",
 	    "void main() {",
-	
+	    
 	    "float ao =  (1.0-unpackFloatFromVec4i(texture2D(aomap,oTC0)));",
 	    "float ss =  (1.0-unpackFloatFromVec4i(texture2D(shadowmap,oTC0)));",
-	   // "gl_FragColor = vec4(ao*ss,ao*ss,ao*ss,1.0);",
-	   // "return;",
+	    "float fogshadow = 1.0 - texture2D(godraysmap,(oScreenPosition.xy / oScreenPosition.w + 1.0)/2.0).r;",
+	   
 	    "vec2 PaintPos = texture2D(pickmap,PaintPosition.xy).xy;",
 	    "PaintPos.y = 1.0- PaintPos.y;",
 	    "vec4 oShadowSpaceVertexW = oShadowSpaceVertex / oShadowSpaceVertex.w;",
@@ -466,7 +471,7 @@ function GetLandscapeShader() {
 	//    "fogamount += unpackFloatFromVec4i(texture2D(shadowmap,oTC0 + (fogtc - oTC0) * i))/10.0;" +
 	//    "}",
 	//    "gl_FragColor = vec4(fogamount,fogamount,fogamount,1.0); return;",
-	    "gl_FragColor =  mix(gl_FragColor,GetSHDirect(normalize(-wViewRay)), clamp((100.0-(camerapos - wViewRay).y)/100.0 * pow(.0035*length(wViewRay),2.0),0.0,1.0));",
+	    "gl_FragColor =  mix(gl_FragColor,GetSHDirect(normalize(-wViewRay)), fogshadow * clamp((100.0-(camerapos - wViewRay).y)/100.0 * pow(.0035*length(wViewRay),2.0),0.0,1.0));",
 	    "gl_FragColor.a = 1.0;",
 	    "float len = length(oTC0-PaintPos)/(PaintPosition.z/(512.0*4.0));",
 	    "len = clamp(0.0,1.0,len);",

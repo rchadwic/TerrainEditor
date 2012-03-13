@@ -105,12 +105,12 @@ function SetupTerrainHeight()
 	    newstateset.setTextureAttribute(3,WebGL.SSBufferTexture);
 	    newstateset.addUniform(osg.Uniform.createInt1(4,"aomap"));
 	    
-	    newstateset.setTexture(8,WebGL.GodRaysBufferTexture); 
+	    newstateset.setTexture(8,WebGL.GodRaysAccumulatorTexture); 
 	    newstateset.addUniform(osg.Uniform.createInt1(8,"godraysmap"));
 	    
-	    gLandscape.setStateSet(newstateset);
+	    WebGL.gModelRoot.setStateSet(newstateset);
 	        
-	        
+	    WebGL.gLandscape.addChild(gLandscape);    
     
     
 }
@@ -139,9 +139,10 @@ function GetLandscapeShader() {
 	    "varying vec3 oLightDir;",
 	    "uniform vec3 camerapos;",
 	    "varying vec3 wViewRay;",
-	   // "varying vec3 oWorldPos;",
+	    "varying vec3 oWorldPos;",
 	    "varying vec4 oWorldNormal;",
 	    "uniform vec4 RenderOptions;",
+	    "varying vec4 sspos;",
 	    "uniform sampler2D heightmap;",
 	    "",
 	    "vec4 ftransform(vec4 vert) {",
@@ -161,6 +162,7 @@ function GetLandscapeShader() {
 	    "void main() {",
 	    "float z = unpackFloatFromVec4i(texture2D(heightmap,TexCoord0)) * 100.0;",
 	    "vec4 vert = vec4(Vertex.x,z + Vertex.y,Vertex.z,1.0);",
+	    "oWorldPos = vert.xyz;",
 	    "wViewRay = camerapos - vert.xyz;",
 	    "vec3 leftvert = vec3(Vertex.x + 1.0*(200.0/512.0),unpackFloatFromVec4i(texture2D(heightmap,TexCoord0 + vec2(1.0/512.0,0))) * 100.0 + Vertex.y,Vertex.z);",
 	    "vec3 frontvert = vec3(Vertex.x,unpackFloatFromVec4i(texture2D(heightmap,TexCoord0+ vec2(0,-1.0/512.0))) * 100.0 + Vertex.y,Vertex.z+ 1.0*(200.0/512.0));",
@@ -172,6 +174,7 @@ function GetLandscapeShader() {
 	    "mat3 tangentspace = mat3(front,left,norm);",
 	    "invTanSpace = transpose3(tangentspace);",
 	    "gl_Position = ftransform(vert);",
+	    "sspos = ftransform(vert);",
 	    "oScreenPosition = gl_Position;",
 	    //"Normal = normalize(Normal);",
 	    "oWorldNormal.xyz = norm;",
@@ -218,12 +221,12 @@ function GetLandscapeShader() {
 	    "varying vec3 wViewRay;",
 	    "uniform mat4 shadowProjection;",
 	    "varying mat3 invTanSpace;",
-	    
+	    "varying vec4 sspos;",
 	    "varying vec4 oShadowSpaceVertex;",
 	    "varying vec4 oScreenPosition;",
 	    "varying vec3 oLightSpaceNormal;",
 	    "varying vec3 oLightDir;",
-	 //   "varying vec3 oWorldPos;",
+	    "varying vec3 oWorldPos;",
 	    "varying vec4 oWorldNormal;",
 	    "uniform vec4 MaterialDiffuseColor;",
 	    "uniform int InWireframe;",
@@ -432,7 +435,6 @@ function GetLandscapeShader() {
 	    
 	    "float ao =  (1.0-unpackFloatFromVec4i(texture2D(aomap,oTC0)));",
 	    "float ss =  (1.0-unpackFloatFromVec4i(texture2D(shadowmap,oTC0)));",
-	    "float fogshadow = 1.0 - texture2D(godraysmap,(oScreenPosition.xy / oScreenPosition.w + 1.0)/2.0).r;",
 	   
 	    "vec2 PaintPos = texture2D(pickmap,PaintPosition.xy).xy;",
 	    "PaintPos.y = 1.0- PaintPos.y;",
@@ -464,13 +466,8 @@ function GetLandscapeShader() {
 	    "else",
 	    	"gl_FragColor =   GetSHAmbient(oWorldNormal.xyz)/7.5 * diffusetexture * (1.0 - clamp(shadow,0.0,1.0)) +  clamp(shadow,0.0,1.0) * GetSHDirect(oWorldNormal.xyz)/1.8 * diffusetexture;",
 	    "gl_FragColor *= ao;",
-	//    "float fogamount = 0.0;",
-	//    "for(float i = 0.0; i < 1.0; i += .1)" +
-	//    "{",
-	//    "vec2 fogtc = vec2((camerapos/200.0).x,-(camerapos/200.0).z) + vec2(.5,.5);",
-	//    "fogamount += unpackFloatFromVec4i(texture2D(shadowmap,oTC0 + (fogtc - oTC0) * i))/10.0;" +
-	//    "}",
-	//    "gl_FragColor = vec4(fogamount,fogamount,fogamount,1.0); return;",
+            "float fogshadow = 1.0 - unpackFloatFromVec4i(texture2D(godraysmap,(vec2((sspos.x/sspos.w)  ,(sspos.y/sspos.w) )) /2.0 +.5));",
+	    //"gl_FragColor = vec4(fogamount,fogamount,fogamount,1.0); return;",
 	    "gl_FragColor =  mix(gl_FragColor,GetSHDirect(normalize(-wViewRay)), fogshadow * clamp((100.0-(camerapos - wViewRay).y)/100.0 * pow(.0035*length(wViewRay),2.0),0.0,1.0));",
 	    "gl_FragColor.a = 1.0;",
 	    "float len = length(oTC0-PaintPos)/(PaintPosition.z/(512.0*4.0));",

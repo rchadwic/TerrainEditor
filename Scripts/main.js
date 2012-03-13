@@ -554,7 +554,7 @@ var aoframecount = 0;
 function Mouseup(x, y,button) {
     
     WebGL.gviewer.view.removeChild(WebGL.PickBufferCam);
-    
+    aoframecount = 0;
     if(button == 1)
     {
 	if(WebGL.ManipulateMode == 'select')
@@ -717,12 +717,20 @@ function UpdateCamera() {
         	 WebGL.PickBufferCam.setViewMatrix(WebGL.gCamera.getViewMatrix());
         	 WebGL.PickBufferCam.setProjectionMatrix(WebGL.gCamera.getProjectionMatrix());
         	}
+            
+            
             if( WebGL.GodRaysBufferCam)
         	{
         	
         	 WebGL.GodRaysBufferCam.setViewMatrix(WebGL.gCamera.getViewMatrix());
         	 WebGL.GodRaysBufferCam.setProjectionMatrix(WebGL.gCamera.getProjectionMatrix());
         	}
+            if( WebGL.GodRaysAccumulatorCam)
+    	{
+    	
+    	 WebGL.GodRaysAccumulatorCam.setViewMatrix(WebGL.gCamera.getViewMatrix());
+    	 WebGL.GodRaysAccumulatorCam.setProjectionMatrix(WebGL.gCamera.getProjectionMatrix());
+    	}
             if( WebGL.DrawBufferCam)
     		{
     	
@@ -2332,9 +2340,8 @@ function SetupRendering() {
     BuildPickBufferCamera();
     WebGL.PickBufferCam.addChild(WebGL.gModelRoot);
     
-    
-   BuildGodRaysBufferCam();
-   WebGL.GodRaysBufferCam.addChild(WebGL.gModelRoot);
+    WebGL.gLandscape = new osg.Node();
+  
    
     WebGL.gCamera.getOrCreateStateSet().setTexture(1, WebGL.PickBufferTexture);
     
@@ -2351,25 +2358,31 @@ function SetupRendering() {
     BuildDrawBufferCamera();
     BuildTextureBufferCamera();
     
+
     
     BuildAOBufferCamera();
     BuildSSBufferCamera();
+    
+    BuildGodRaysBufferCam();
+    BuildGodRaysAccumulatorCam();
     WebGL.gCamera.addChild(WebGL.AOBufferCam);
     WebGL.gCamera.addChild(WebGL.SSBufferCam);
     WebGL.gCamera.addChild(WebGL.GodRaysBufferCam);
+    WebGL.gCamera.addChild(WebGL.GodRaysAccumulatorCam);
+    
     WebGL.AOBufferCam.getOrCreateStateSet().setTextureAttribute(2,WebGL.DrawBufferTexture);
     WebGL.SSBufferCam.getOrCreateStateSet().setTextureAttribute(2,WebGL.DrawBufferTexture);
     WebGL.PickDebugNode = BuildShadowDebugQuad();
-    WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.GodRaysBufferTexture);
+    WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.GodRaysAccumulatorTexture);
     
-    WebGL.gviewer.view.addChild(WebGL.PickBufferCam);
+    //WebGL.gviewer.view.addChild(WebGL.PickBufferCam);
     
     
     WebGL.gviewer.frame();
     
   //  var drawquad = BuildShadowDebugQuad();
   //  drawquad.getOrCreateStateSet().setTextureAttribute(0,WebGL.DrawBufferTexture);
-   // WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+  //WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
     
 
     

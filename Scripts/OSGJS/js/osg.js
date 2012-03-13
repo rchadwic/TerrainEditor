@@ -3390,6 +3390,9 @@ osg.Depth.prototype = {
     apply: function(state) {
         if (this.func === 'DISABLE') {
             gl.disable(gl.DEPTH_TEST);
+            gl.depthFunc(gl[this.func]);
+            gl.depthMask(this.writeMask);
+            gl.depthRange(this.near, this.far);
         } else {
             gl.enable(gl.DEPTH_TEST);
             gl.depthFunc(gl[this.func]);

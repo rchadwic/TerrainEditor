@@ -168,7 +168,7 @@ function GetSSShader() {
 	    "left = cross(norm,front);",
 	    "mat3 invtangentspace = transpose3(mat3(front,left,norm));",
 	    "vec4 noise = texture2D(noisemap,(oTC0+normalize(RandomVec).xy)*2.0)-.5;",
-	    "vec3 sunpos = vec3(5.0,5.0,0.0) + (noise.xyz-.5);",
+	    "vec3 sunpos = vec3(6.0,5.0,5.0) + (noise.xyz-.5);",
 	    "vec3 sundir = normalize(sunpos-vert.xyz)*(noise.r/2.0+.5);",
 	    "gl_FragColor = packFloatToVec4i(base + (TestVec(sundir,vert.xyz))/(aoframecount));",
 	    

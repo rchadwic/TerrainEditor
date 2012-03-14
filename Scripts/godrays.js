@@ -35,7 +35,7 @@ function BuildGodRaysAccumulatorCam() {
    
     rtt.setClearColor([ 0, 0, 0, 1 ]);
     rtt.getOrCreateStateSet().setAttribute(new osg.Depth('LESS',0.0,1000.0,true));
-    rtt.getOrCreateStateSet().setAttribute(new osg.CullFace("DISABLE"));
+    rtt.getOrCreateStateSet().setAttribute(new osg.CullFace("BACK"));
    
     rtt.getOrCreateStateSet().addUniform(osg.Uniform.createFloat3([1,1,1], "randomColor"));
     WebGL.GodRaysAccumulatorCam = rtt;
@@ -51,9 +51,11 @@ function BuildGodRaysAccumulatorCam() {
     rtt.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(4,"godraysmap"));
     WebGL.GodRaysAccumulatorCam.addChild(WebGL.gLandscape);
     
-    rtt.getOrCreateStateSet().addUniform(WebGL.AOFrameCount);
+    
     rtt.getOrCreateStateSet().addUniform(WebGL.AOSampleVec);
     
+    WebGL.GRFrameCount = osg.Uniform.createFloat1([1], "grframecount");
+    rtt.getOrCreateStateSet().addUniform(WebGL.GRFrameCount);
 }
 
 
@@ -96,8 +98,7 @@ function BuildGodRaysBufferCam() {
     WebGL.GodRaysBufferTexture = rttTexture;
    
     WebGL.GodRaysBufferCam.addChild(WebGL.gModelRoot);
-    
-    
+   
     
     
 }
@@ -139,7 +140,7 @@ function GetGodRaysShader() {
 	    "vec3 frontvert = vec3(Vertex.x,unpackFloatFromVec4i(texture2D(heightmap,TexCoord0+ vec2(0,-1.0/512.0))) * 100.0 + Vertex.y,Vertex.z+ 1.0*(200.0/512.0));",
 	    "vec3 left = normalize(leftvert - vert.xyz);",
 	    "vec3 front = normalize(frontvert - vert.xyz);",
-	    "vec3 sunpos = vec3(9.0,5.0,2.0);",
+	    "vec3 sunpos = vec3(5.0,3.0,-4.0);",
 	    "vec3 norm = normalize(cross(front,left));",
 	    "oWorldNormal.xyz = norm;",
 	    
@@ -260,7 +261,7 @@ function GetGodRaysAccumulatorShader() {
 	    "uniform vec3 randomColor;",
 	    "varying vec3 oWorldPos;",
 	    "uniform vec4 RandomVec;",
-	    "uniform float aoframecount;",
+	    "uniform float grframecount;",
 	    "uniform int time;",
 	    "varying vec2 oTC0;",
 	    "uniform vec3 camerapos;",
@@ -285,28 +286,41 @@ function GetGodRaysAccumulatorShader() {
 	    "  const vec4 bitSh = vec4(1.0/(255.0*255.0*255.0), 1.0/(255.0*255.0), 1.0/255.0, 1.0);",
 	    "  return(dot(value, bitSh));", "}",
 	    "void main() {",
-	    "if(aoframecount == 1.0)" +
+	    "if(grframecount == 1.0)" +
 	     "{" +
 	     "gl_FragColor = vec4(0.0,0.0,0.0,0.0);" +
 	     "return;" +
 	     "}",
 	    "vec4 cbase = texture2D(texture,(vec2((sspos.x/sspos.w)  ,(sspos.y/sspos.w) )) /2.0 +.5);",
-	    "float base = unpackFloatFromVec4i(cbase) * ((aoframecount-1.0)/aoframecount);",
+	    "float base = unpackFloatFromVec4i(cbase) * ((grframecount-1.0)/grframecount);",
 	    "vec4 noise = texture2D(noisemap,(oTC0+normalize(RandomVec).xy)*2.0)-.5;",
+	    "noise = noise*2.0 - 1.0;",
 	    "float fogamount = 0.0;",
-	    "for(float i = 0.0; i < 1.0; i += .05)" +
+	    "float goodtestcount = 0.0;",
+	    "for(float i = 0.1; i < 1.0; i += .1)" +
 	    "{",
-	        "vec3 testvec = camerapos - wViewRay*(i+noise.r/20.0); ",
+	    
+	    "    float noisei = i+(noise.y / 10.0);",
+	        "noisei = clamp(noisei,.001,.999);",
+	        "vec3 testvec = (camerapos-noise.xyz) - wViewRay*(noisei); ",
 	    	"vec2 fogtc = vec2((testvec/200.0).x,-(testvec/200.0).z) + vec2(.5,.5);",
-	    	"float sh = unpackFloatFromVec4i(texture2D(godraysmap,oTC0 + (fogtc - oTC0) * i))*100.0;" +
-	    	"if(testvec.y < sh)" +
-	    	"{" +
-	    	"	fogamount += .05;" +
+	    	"fogtc = oTC0 + (fogtc - oTC0) * i;",
+	    	"if(fogtc.x > 0.0 && fogtc.y > 0.0 && fogtc.x < 1.0 && fogtc.y < 1.0)" +
+	    	"{",
+	    		"float sh = unpackFloatFromVec4i(texture2D(godraysmap,fogtc))*100.0;" +
+	    		"float terh = unpackFloatFromVec4i(texture2D(heightmap,fogtc))*100.0;" +
+	    		"if(testvec.y < sh && testvec.y > terh)" +
+	    		"{" +
+	    		"	fogamount += 1.0;" +
+	    		"}" +
+	    		"goodtestcount++;" +
+	    		
 	    	"}" +
 	    "}",
-	    "fogamount = clamp(fogamount,0.00,1.0);",
-	    "float ret = base + fogamount/aoframecount;",
+	    "fogamount = clamp(fogamount/goodtestcount,0.00,1.0);",
+	    "float ret = base + fogamount/grframecount;",
 	    "gl_FragColor = packFloatToVec4i(ret);",
+	    
 	   	
 	  
 	    "}" ].join('\n');

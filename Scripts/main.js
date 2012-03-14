@@ -520,6 +520,9 @@ function SwapUpVector() {
 var drawtarget = "Height";
 function Mousedown(x, y,button) {
     
+    
+    WebGL.gCamera.removeChild(WebGL.GodRaysAccumulatorCam);
+    WebGL.gCamera.addChild(WebGL.GodRaysBufferCam);
     WebGL.gviewer.view.addChild(WebGL.PickBufferCam);
     if(button == 3)
 	{
@@ -551,10 +554,13 @@ function Mousedown(x, y,button) {
     WebGL.gMouseDown = true;
 }
 var aoframecount = 0;
+var grframecount = 0;
 function Mouseup(x, y,button) {
     
     WebGL.gviewer.view.removeChild(WebGL.PickBufferCam);
-    aoframecount = 0;
+    grframecount = 0;
+    WebGL.gCamera.addChild(WebGL.GodRaysAccumulatorCam);
+    WebGL.gCamera.removeChild(WebGL.GodRaysBufferCam);
     if(button == 1)
     {
 	if(WebGL.ManipulateMode == 'select')
@@ -791,6 +797,9 @@ function mousewheelfunction(delta)
 {  
     if(delta)
     {   
+	WebGL.gCamera.removeChild(WebGL.GodRaysAccumulatorCam);
+	WebGL.gCamera.addChild(WebGL.GodRaysAccumulatorCam);
+	grframecount = 0;
         WebGL.gAnimating = false;
         if (delta > 0) {
     	// manipulator.distanceDecrease();
@@ -2285,12 +2294,18 @@ function SetupRendering() {
     WebGL.gviewer.prerender = function(time)
     {
 	aoframecount++;
-	if(aoframecount == 2000)
+	grframecount++;
+	if(grframecount == 450)
+	    {
+	    WebGL.gCamera.removeChild(WebGL.GodRaysAccumulatorCam);
+	    }
+	if(aoframecount == 450)
 	    {
 	    WebGL.gCamera.removeChild(WebGL.AOBufferCam);
 	    WebGL.gCamera.removeChild(WebGL.SSBufferCam);
 	    }
 	WebGL.AOFrameCount.set([aoframecount]);
+	WebGL.GRFrameCount.set([grframecount]);
 	WebGL.AOSampleVec.set(osg.Vec3.normalize([Math.random()*10-5,Math.random()*10-5,1,Math.random()]));
 	  var x = (WebGL.MouseX / WebGL.gviewer.canvas.width);
 	    var y = (WebGL.MouseY / WebGL.gviewer.canvas.height);
@@ -2367,7 +2382,7 @@ function SetupRendering() {
     BuildGodRaysAccumulatorCam();
     WebGL.gCamera.addChild(WebGL.AOBufferCam);
     WebGL.gCamera.addChild(WebGL.SSBufferCam);
-    WebGL.gCamera.addChild(WebGL.GodRaysBufferCam);
+   // WebGL.gCamera.addChild(WebGL.GodRaysBufferCam);
     WebGL.gCamera.addChild(WebGL.GodRaysAccumulatorCam);
     
     WebGL.AOBufferCam.getOrCreateStateSet().setTextureAttribute(2,WebGL.DrawBufferTexture);
@@ -2382,7 +2397,7 @@ function SetupRendering() {
     
   //  var drawquad = BuildShadowDebugQuad();
   //  drawquad.getOrCreateStateSet().setTextureAttribute(0,WebGL.DrawBufferTexture);
-  //WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+ // WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
     
 
     

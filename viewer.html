@@ -79,6 +79,37 @@ function saveImageAs (imgOrURL) {
     setTimeout('win.document.execCommand("SaveAs")', 500);
   }
   
+function refresh()
+{
+ Mousedown(-1,-1,1);
+ Mouseup(-1,-1,1);
+}
+function LoadLandscape(file)
+{
+		var load = osg.Texture.create(file);
+		load.image.onload = function()
+		{
+		    	var gl = WebGL.gviewer.gl;
+		        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+		        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, false);
+		        gl.bindTexture(gl.TEXTURE_2D, WebGL.DrawBufferTexture.textureObject);
+		        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, load.image);
+		        refresh();
+		        
+		}
+}
+function ShadowsAreOn()
+{
+    return WebGL.gRenderOptionsUniform.data[1] > 0;   
+}
+function AOisOn()
+{
+    return WebGL.gRenderOptionsUniform2.data[0] > 0;   
+}
+function AtmosphereShadowsAreOn()
+{
+    return WebGL.gRenderOptionsUniform2.data[1] > 1;   
+}
 $(document).ready(function(){
     
   
@@ -90,7 +121,18 @@ $(document).ready(function(){
 	    {
 			WebGL.gRenderOptionsUniform.set([1,WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
 			$("#Textured").html("Relief");
-	    }else
+	    }else if($("#Textured").html()=="Relief")
+		{
+			WebGL.gRenderOptionsUniform.set([2,WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			$("#Textured").html("White");
+		}
+	    else if($("#Textured").html()=="White")
+		{
+			WebGL.gRenderOptionsUniform.set([3,WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			$("#Textured").html("Black");
+		
+		}
+	    else if($("#Textured").html()=="Black")
 		{
 			WebGL.gRenderOptionsUniform.set([0,WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
 			$("#Textured").html("Textured");
@@ -99,11 +141,50 @@ $(document).ready(function(){
     });
     $("#Textured").html("Textured");
     
+    $("#AmbientOcclusion").button({label:"AmbientOcclusion"});
+    $("#AmbientOcclusion").click(function(){
+		if($("#AmbientOcclusion").html()=="Off")
+	    {
+			WebGL.gRenderOptionsUniform2.set([1,WebGL.gRenderOptionsUniform2.data[1],WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
+			 refresh();
+			$("#AmbientOcclusion").html("On");
+	    }else
+		{
+			WebGL.gRenderOptionsUniform2.set([0,WebGL.gRenderOptionsUniform2.data[1],WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
+			$("#AmbientOcclusion").html("Off");
+		
+		}
+    });
+    $("#AmbientOcclusion").html("On");
+    
+    $("#Atmosphere").button({label:"Atmosphere"});
+    $("#Atmosphere").click(function(){
+		if($("#Atmosphere").html()=="Off")
+	    {
+			WebGL.gRenderOptionsUniform2.set([WebGL.gRenderOptionsUniform2.data[0],1,WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
+			$("#Atmosphere").html("Simple");
+	    }else if($("#Atmosphere").html()=="Simple")
+		{
+			WebGL.gRenderOptionsUniform2.set([WebGL.gRenderOptionsUniform2.data[0],2,WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
+			 refresh();
+			$("#Atmosphere").html("Volume");
+		
+		}
+	    else if($("#Atmosphere").html()=="Volume")
+		{
+			WebGL.gRenderOptionsUniform2.set([WebGL.gRenderOptionsUniform2.data[0],0,WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
+			$("#Atmosphere").html("Off");
+		
+		}
+    });
+    $("#Atmosphere").html("Volume");
+    
     $("#ShadowsOn").button({label:"On"});
     $("#ShadowsOn").click(function(){
 		if($("#ShadowsOn").html()=="Off")
 	    {
 			WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],1,WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			 refresh();
 			$("#ShadowsOn").html("On");
 	    }else
 		{
@@ -244,7 +325,7 @@ $(document).ready(function(){
 		
 	WebGL.gviewer.canvas.height = 512;
 	WebGL.gviewer.canvas.width = 512;
-			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.ShadowTexture);
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.SSBufferTexture);
 	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
 			WebGL.gviewer.frame();
 			WebGL.gviewer.gl.flush();
@@ -253,7 +334,76 @@ $(document).ready(function(){
 			WebGL.gviewer.canvas.height = 1024;
 			WebGL.gviewer.canvas.width = 1280;
 	});
+    
     $("#UpdateShadowmap").html('Shadow');
+    
+    $("#UpdateAOmap").button({label:"Shadow"});
+    $("#UpdateAOmap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.AOBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = 1024;
+			WebGL.gviewer.canvas.width = 1280;
+	});
+    
+    $("#UpdateAOmap").html('AO');
+    
+    $("#UpdateShadowVolumeMap").button({label:"S. Volume"});
+    $("#UpdateShadowVolumeMap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.ShadowVolumeBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = 1024;
+			WebGL.gviewer.canvas.width = 1280;
+	});
+    
+    $("#UpdateShadowVolumeMap").html('S. Volume');
+    
+    $("#UpdateRaysMap").button({label:"Rays"});
+    $("#UpdateRaysMap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.GodRaysAccumulatorTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = 1024;
+			WebGL.gviewer.canvas.width = 1280;
+	});
+    
+    $("#UpdateRaysMap").html('Rays');
+    
+    $("#UpdateDepthMap").button({label:"Depth"});
+    $("#UpdateDepthMap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.DepthBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = 1024;
+			WebGL.gviewer.canvas.width = 1280;
+	});
+    
+    $("#UpdateDepthMap").html('Depth');
     
     $("#render").button({label:"R"});
     $("#render").click(function(){
@@ -270,20 +420,16 @@ $(document).ready(function(){
 	});
     $("#render").html('R');
     
+   
     $("#l").button({label:"L"});
     $("#l").click(function(){
 	   
 	
-		var load = osg.Texture.create("./Assets/Textures/craetor.png");
-		load.image.onload = function()
-		{
-		    	var gl = WebGL.gviewer.gl;
-		        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-		        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, false);
-		        gl.bindTexture(gl.TEXTURE_2D, WebGL.DrawBufferTexture.textureObject);
-		        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, load.image);
-		    
-		}
+	 LoadLandscape("./Assets/Textures/crater.png");
+	 WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex2);
+	 WebGL.TerrainState.setTexture(5,WebGL.NormalTex2);
+	 refresh();
+		
 	});
     $("#l").html('L');
     
@@ -351,6 +497,8 @@ $(document).ready(function(){
 				<tr><td>Shadows:</td><td> <div id="ShadowsOn" ></div></td></tr>
 				<tr><td>Normal Map:</td><td> <div id="NormalOn" ></div></td></tr>
 				<tr><td>Texture:</td><td> <div id="AutoMix" ></div></td></tr>
+				<tr><td>Ambient Occlusion:</td><td> <div id="AmbientOcclusion" ></div></td></tr>
+				<tr><td>Atmosphere:</td><td> <div id="Atmosphere" ></div></td></tr>
 		</table>
 		
 		</div>
@@ -367,6 +515,10 @@ $(document).ready(function(){
 		<div id="UpdateTexturemap" ></div>
 		<div id="UpdatePickmap" ></div>
 		<div id="UpdateShadowmap" ></div>
+		<div id="UpdateAOmap" ></div>
+		<div id="UpdateShadowVolumeMap" ></div>
+		<div id="UpdateRaysMap" ></div>
+		<div id="UpdateDepthMap" ></div>
 		<div id="l" ></div>
 		<div id="render" ></div>
 		</div>

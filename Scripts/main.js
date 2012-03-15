@@ -46,6 +46,7 @@ WebGL.DrawBufferTexture = null;
 WebGL.gPaintPositionUniform = null;
 WebGL.gPaintOptionsUniform = null;
 WebGL.gRenderOptionsUniform = null;
+WebGL.gRenderOptionsUniform2 = null;
  WebGL.gURL = "";
  WebGL.gviewer;
  WebGL.gSceneRoot;
@@ -522,7 +523,8 @@ function Mousedown(x, y,button) {
     
     
     WebGL.gCamera.removeChild(WebGL.GodRaysAccumulatorCam);
-    WebGL.gCamera.addChild(WebGL.GodRaysBufferCam);
+    
+    if(AtmosphereShadowsAreOn()) WebGL.gCamera.addChild(WebGL.ShadowVolumeBufferCam);
     WebGL.gviewer.view.addChild(WebGL.PickBufferCam);
     if(button == 3)
 	{
@@ -559,8 +561,8 @@ function Mouseup(x, y,button) {
     
     WebGL.gviewer.view.removeChild(WebGL.PickBufferCam);
     grframecount = 0;
-    WebGL.gCamera.addChild(WebGL.GodRaysAccumulatorCam);
-    WebGL.gCamera.removeChild(WebGL.GodRaysBufferCam);
+    if(AtmosphereShadowsAreOn()) WebGL.gCamera.addChild(WebGL.GodRaysAccumulatorCam);
+    WebGL.gCamera.removeChild(WebGL.ShadowVolumeBufferCam);
     if(button == 1)
     {
 	if(WebGL.ManipulateMode == 'select')
@@ -569,8 +571,8 @@ function Mouseup(x, y,button) {
 	    WebGL.gviewer.scene.removeChild(WebGL.DrawTextureBufferCam);
 	    if(drawtarget == "Height")
 		aoframecount = 0;
-	    WebGL.gCamera.addChild(WebGL.AOBufferCam);
-	    WebGL.gCamera.addChild(WebGL.SSBufferCam);
+	    if(AOisOn()) WebGL.gCamera.addChild(WebGL.AOBufferCam);
+	    if(ShadowsAreOn()) WebGL.gCamera.addChild(WebGL.SSBufferCam);
 	    WebGL.AOFrameCount.set([aoframecount]);
 	    WebGL.gviewer.scene.removeChild(WebGL.ShadowCam);
         	//if(WebGL.MouseMoving == false)
@@ -725,24 +727,30 @@ function UpdateCamera() {
         	}
             
             
-            if( WebGL.GodRaysBufferCam)
+            if( WebGL.ShadowVolumeBufferCam)
         	{
         	
-        	 WebGL.GodRaysBufferCam.setViewMatrix(WebGL.gCamera.getViewMatrix());
-        	 WebGL.GodRaysBufferCam.setProjectionMatrix(WebGL.gCamera.getProjectionMatrix());
+        	 WebGL.ShadowVolumeBufferCam.setViewMatrix(WebGL.gCamera.getViewMatrix());
+        	 WebGL.ShadowVolumeBufferCam.setProjectionMatrix(WebGL.gCamera.getProjectionMatrix());
         	}
             if( WebGL.GodRaysAccumulatorCam)
-    	{
-    	
-    	 WebGL.GodRaysAccumulatorCam.setViewMatrix(WebGL.gCamera.getViewMatrix());
-    	 WebGL.GodRaysAccumulatorCam.setProjectionMatrix(WebGL.gCamera.getProjectionMatrix());
-    	}
+        	{
+        	
+        	 WebGL.GodRaysAccumulatorCam.setViewMatrix(WebGL.gCamera.getViewMatrix());
+        	 WebGL.GodRaysAccumulatorCam.setProjectionMatrix(WebGL.gCamera.getProjectionMatrix());
+        	}
             if( WebGL.DrawBufferCam)
     		{
     	
         	WebGL.DrawBufferCam.setViewMatrix(WebGL.gCamera.getViewMatrix());
     	 	WebGL.DrawBufferCam.setProjectionMatrix(WebGL.gCamera.getProjectionMatrix());
     		}
+            if( WebGL.DepthBufferCam)
+		{
+	
+        	WebGL.DepthBufferCam.setViewMatrix(WebGL.gCamera.getViewMatrix());
+	 	WebGL.DepthBufferCam.setProjectionMatrix(WebGL.gCamera.getProjectionMatrix());
+		}
 	}
     
     if (WebGL.ShadowCam) {
@@ -2295,11 +2303,11 @@ function SetupRendering() {
     {
 	aoframecount++;
 	grframecount++;
-	if(grframecount == 450)
+	if(grframecount == 8000)
 	    {
 	    WebGL.gCamera.removeChild(WebGL.GodRaysAccumulatorCam);
 	    }
-	if(aoframecount == 450)
+	if(aoframecount == 8000)
 	    {
 	    WebGL.gCamera.removeChild(WebGL.AOBufferCam);
 	    WebGL.gCamera.removeChild(WebGL.SSBufferCam);
@@ -2378,7 +2386,7 @@ function SetupRendering() {
     BuildAOBufferCamera();
     BuildSSBufferCamera();
     
-    BuildGodRaysBufferCam();
+    BuildShadowVolumeBufferCam();
     BuildGodRaysAccumulatorCam();
     WebGL.gCamera.addChild(WebGL.AOBufferCam);
     WebGL.gCamera.addChild(WebGL.SSBufferCam);
@@ -2964,6 +2972,12 @@ function createScene(viewer, url) {
    // RebuildGrid();
     WebGL.gCameraTarget = [0,0,0];
     WebGL.gCameraOffset = [100,100,100];
+    
+    LoadLandscape("./Assets/Textures/mountain.png");
+    Mousedown(-1, -1,1);
+    Mouseup(-1, -1,1);
+    UpdateCamera();
+    
     WebGL.gviewer.run();
     
     

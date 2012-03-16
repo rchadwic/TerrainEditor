@@ -3148,6 +3148,4 @@ function ParseSceneGraph(node, texture_load_callback) {
 
     return node;
 }
-$ = jQuery;
-$(document).ready(function(){
-initWebGL("file:///C:/Development\\HTML5Game\\Assets\\Models\\matv01_veh.json", false, "Y", 1.0  );});
+

@@ -407,6 +407,7 @@ function GetLandscapeShader() {
         	    "if(RenderOptions[3] == 1.0)" ,
         	    "{",
         	    	    "mixdata = normalize(texture2D(mixmap,oTC0));" ,
+        	    	    "if(oWorldNormal.w < 0.10) watermix = 1.0;",
         	    "}" ,
         	    "else" ,
         	    "{",

@@ -57,6 +57,7 @@ a:hover {
 <script type="text/javascript" src="./Scripts/ambientoccclusion.js"></script>
 <script type="text/javascript" src="./Scripts/softshadows.js"></script>
 <script type="text/javascript" src="./Scripts/godrays.js"></script>
+<script type="text/javascript" src="./Scripts/globalillumination.js"></script>
 <script type="text/javascript" src="./Scripts/jquery.dialogextend.min.js"></script>
 <link href="styles/jquery-ui-1.8.18.custom.css" type="text/css" rel="stylesheet">
 <script type="text/javascript">
@@ -189,7 +190,7 @@ function refresh()
     aoframecount = 0;
  Mousedown(-1,-1,1);
  Mouseup(-1,-1,1);
-
+ WebGL.needsRefresh = false; 
 }
 function LoadLandscape(file)
 {
@@ -212,7 +213,11 @@ function ShadowsAreOn()
 function AOisOn()
 {
     return WebGL.gRenderOptionsUniform2.data[0] > 0;   
+}function GIisOn()
+{
+    return WebGL.gRenderOptionsUniform2.data[2] > 0;   
 }
+
 function AtmosphereShadowsAreOn()
 {
     return WebGL.gRenderOptionsUniform2.data[1] > 1;   
@@ -253,7 +258,8 @@ $(document).ready(function(){
 		if($("#AmbientOcclusion").html()=="Off")
 	    {
 			WebGL.gRenderOptionsUniform2.set([1,WebGL.gRenderOptionsUniform2.data[1],WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
-			 refresh();
+			if(WebGL.needsRefresh == true) 
+				refresh();
 			$("#AmbientOcclusion").html("On");
 	    }else
 		{
@@ -273,7 +279,8 @@ $(document).ready(function(){
 	    }else if($("#Atmosphere").html()=="Simple")
 		{
 			WebGL.gRenderOptionsUniform2.set([WebGL.gRenderOptionsUniform2.data[0],2,WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
-			 refresh();
+			if(WebGL.needsRefresh == true)  
+				refresh();
 			$("#Atmosphere").html("Volume");
 		
 		}
@@ -291,7 +298,8 @@ $(document).ready(function(){
 		if($("#ShadowsOn").html()=="Off")
 	    {
 			WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],1,WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
-			 refresh();
+			if(WebGL.needsRefresh == true) 
+				refresh();
 			$("#ShadowsOn").html("On");
 	    }else
 		{
@@ -300,7 +308,25 @@ $(document).ready(function(){
 		}
     });
     $("#ShadowsOn").html("On");
-       
+ 
+
+    $("#Globalllumination").button({label:"On"});
+    $("#Globalllumination").click(function(){
+		if($("#Globalllumination").html()=="Off")
+	    {
+			WebGL.gRenderOptionsUniform2.set([WebGL.gRenderOptionsUniform2.data[0],WebGL.gRenderOptionsUniform2.data[1],1,WebGL.gRenderOptionsUniform2.data[3]]);
+			if(WebGL.needsRefresh == true) 
+				refresh();
+			$("#Globalllumination").html("On");
+	    }else
+		{
+			WebGL.gRenderOptionsUniform2.set([WebGL.gRenderOptionsUniform2.data[0],WebGL.gRenderOptionsUniform2.data[1],0,WebGL.gRenderOptionsUniform2.data[3]]);
+			$("#Globalllumination").html("Off");
+		}
+    });
+    $("#Globalllumination").html("On");
+    
+    
     $("#NormalOn").button({label:"On"});
     $("#NormalOn").click(function(){
 		if($("#NormalOn").html()=="Off")
@@ -703,9 +729,10 @@ $(document).ready(function(){
 				<table style="color:black;font-size:10px">
 						<tr><td>Mapping:</td><td> <div id="Textured" ></div></td></tr>
 						<tr><td>Shadows:</td><td> <div id="ShadowsOn" ></div></td></tr>
+						<tr><td>Ambient Occlusion:</td><td> <div id="AmbientOcclusion" ></div></td></tr>
+						<tr><td>Global Illumination:</td><td> <div id="Globalllumination" ></div></td></tr>
 						<tr><td>Normal Map:</td><td> <div id="NormalOn" ></div></td></tr>
 						<tr><td>Texture:</td><td> <div id="AutoMix" ></div></td></tr>
-						<tr><td>Ambient Occlusion:</td><td> <div id="AmbientOcclusion" ></div></td></tr>
 						<tr><td>Atmosphere:</td><td> <div id="Atmosphere" ></div></td></tr>
 				</table>
 			<div></br>The options effect the rendered view. Turn options off to acheive a faster framerate. You may need to click in the window to force a redraw after changing some options.</div>

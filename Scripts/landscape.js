@@ -91,10 +91,7 @@ function SetupTerrainHeight()
 	    newstateset.addUniform(WebGL.gPaintOptionsUniform);
 	    newstateset.addUniform(WebGL.gTimeUniform);
 	      
-	    WebGL.gRenderOptionsUniform =  osg.Uniform.createFloat4([ 0,1,1,0 ], 'RenderOptions');
-	    WebGL.gRenderOptionsUniform2 =  osg.Uniform.createFloat4([ 1,2,1,1 ], 'RenderOptions2');
-	    newstateset.addUniform(WebGL.gRenderOptionsUniform);
-	    newstateset.addUniform(WebGL.gRenderOptionsUniform2);
+
 	 //   landscapeTexture = osg.Texture.createFromCanvas(landscapecanvas);
 	 //   landscapeTexture.compile();
 	    
@@ -108,6 +105,9 @@ function SetupTerrainHeight()
 	    
 	    newstateset.setTexture(8,WebGL.GodRaysAccumulatorTexture); 
 	    newstateset.addUniform(osg.Uniform.createInt1(8,"godraysmap"));
+	    
+	    newstateset.setTexture(9,WebGL.GIBufferTexture); 
+	    newstateset.addUniform(osg.Uniform.createInt1(9,"gimap"));
 	    
 	    WebGL.gModelRoot.setStateSet(newstateset);
 	        
@@ -215,6 +215,7 @@ function GetLandscapeShader() {
 	    "uniform sampler2D mixmap;",
 	    "uniform sampler2D aomap;",
 	    "uniform sampler2D godraysmap;",
+	    "uniform sampler2D gimap;",
 	    "uniform int time;",
 	    "uniform float FrameTime;",
 	    "uniform vec2 canvasSize;",
@@ -435,7 +436,10 @@ function GetLandscapeShader() {
 	 
 	    "}",
 	    "void main() {",
-	    
+	    "vec4 gi = vec4(0.0,0.0,0.0,0.0);",
+	    "if(RenderOptions2[2] == 1.0)",
+	    	"gi = texture2D(gimap,oTC0);",
+	//    "gl_FragColor = gi; return;",
 	    "float ao = 1.0;" +
 	    "if(RenderOptions2[0] == 1.0) ao = (1.0-unpackFloatFromVec4i(texture2D(aomap,oTC0)));",
 	    "float ss =  1.0;" +
@@ -472,13 +476,15 @@ function GetLandscapeShader() {
 	//    	"NdotL = dot(normalize(GetNormal()),normalize(oLightDir));" ,
 	//    "else" ,
 	//    	"NdotL = dot(normalize(oLightSpaceNormal),normalize(oLightDir));" ,
-	    "float light = min(clamp(shadow,0.0,1.0),clamp(NdotL,0.0,1.0))*1.0;",
+	    "float light =  min(clamp(shadow,0.0,1.0),clamp(NdotL,0.0,1.0))*1.0;",
 	    "vec4 ambient = vec4(.0,.0,.0,1.0);",
 	    "if(RenderOptions[2] == 1.0)",
-	    	"gl_FragColor =  GetSHAmbient(invTanSpace * GetNormal())/4.5 * diffusetexture * (1.0 - clamp(shadow,0.1,1.0)) +  clamp(shadow,0.0,1.0) * GetSHDirect(invTanSpace * GetNormal())/1.8 * diffusetexture;",
+	    	"gl_FragColor =   GetSHAmbient(invTanSpace * GetNormal())/4.5 * diffusetexture * (1.0 - clamp(shadow,0.1,1.0)) +  clamp(shadow,0.0,1.0) * GetSHDirect(invTanSpace * GetNormal())/1.8 * diffusetexture;",
 	    "else",
 	    	"gl_FragColor =   GetSHAmbient(oWorldNormal.xyz)/4.5 * diffusetexture * (1.0 - clamp(shadow,0.1,1.0)) +  clamp(shadow,0.0,1.0) * GetSHDirect(oWorldNormal.xyz)/1.8 * diffusetexture;",
+	    
 	    "gl_FragColor *= ao;",
+	    "gl_FragColor += diffusetexture * gi;",
             "float fogshadow = 0.0;" +
             "if(RenderOptions2[1] == 1.0) fogshadow = 1.0;",
             "if(RenderOptions2[1] == 2.0) fogshadow = 1.0 - unpackFloatFromVec4i(texture2D(godraysmap,(vec2((sspos.x/sspos.w)  ,(sspos.y/sspos.w) )) /2.0 +.5));",

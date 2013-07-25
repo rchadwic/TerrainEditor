@@ -1,30 +1,12 @@
-/**
- * -*- compile-command: "jslint-cli main.js" -*-
- * 
- * Copyright (C) 2011 Cedric Pinson
- * 
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 3 of the License, or any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin St, Fifth Floor, Boston, MA 02110-1301, USA. 
- * 
- * Authors: Cedric Pinson <cedric.pinson@plopbyte.net>
- * 
- */
-
-
+/*
+Copyright 2012 Rob Chadwick (rchadwic@gmail.com)
+This work is licensed under a Creative Commons 
+Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+http://creativecommons.org/licenses/by-nc-sa/3.0/
+*/
 
  var isNS = (navigator.appName == "Netscape") ? 1 : 0;
-  if(navigator.appName == "Netscape") document.captureEvents(Event.MOUSEDOWN||Event.MOUSEUP);
+ // if(navigator.appName == "Netscape") document.captureEvents(Event.MOUSEDOWN||Event.MOUSEUP);
   function mischandler(){
    return false;
  }
@@ -731,7 +713,12 @@ function UpdateCamera() {
         	 WebGL.PickBufferCam.setViewMatrix(WebGL.gCamera.getViewMatrix());
         	 WebGL.PickBufferCam.setProjectionMatrix(WebGL.gCamera.getProjectionMatrix());
         	}
-            
+         if( WebGL.BakeCam)
+    	{
+    	
+    	 WebGL.BakeCam.setViewMatrix(WebGL.gCamera.getViewMatrix());
+    	 WebGL.BakeCam.setProjectionMatrix(WebGL.gCamera.getProjectionMatrix());
+    	}
             
             if( WebGL.ShadowVolumeBufferCam)
         	{
@@ -863,15 +850,18 @@ function BindInputs() {
 
 	    
 	    var evt = convertEventToCanvas(ev);
+	    if(WebGL.gMouseDown == false)
 	    Mousedown(evt[0], evt[1],ev.which);
 	    UpdateCamera();
 	},
 	mouseup : function(ev) {
 
 	    var evt = convertEventToCanvas(ev);
-	    Mouseup(evt[0], evt[1],ev.which);
+	    if(WebGL.gMouseDown == true)
+		Mouseup(evt[0], evt[1],ev.which);
 	    UpdateCamera();
 	},
+	
 	mousemove : function(ev) {
 
 	    ev.preventDefault();
@@ -1966,10 +1956,7 @@ function DoPick(){
    // WebGL.gviewer.view.addChild(WebGL.PickBufferCam);
    // WebGL.gviewer.frame();
     gl.bindFramebuffer(gl.FRAMEBUFFER,WebGL.PickBufferCam.frameBufferObject.fbo);
-   
-
-    
-   // gl.flush();
+    gl.flush();
     var x = (WebGL.MouseX / WebGL.gviewer.canvas.width) * WebGL.PickBufferResolution;
     var y = (WebGL.MouseY / WebGL.gviewer.canvas.height) * WebGL.PickBufferResolution;
     gl.readPixels(x,y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,v1);
@@ -2405,6 +2392,8 @@ function SetupRendering() {
     
     BuildGIBufferCamera();
     
+    BuildLandscapeTextureCam();
+    
     WebGL.gCamera.addChild(WebGL.GIBufferCam);
     WebGL.gCamera.addChild(WebGL.AOBufferCam);
     WebGL.gCamera.addChild(WebGL.SSBufferCam);
@@ -2415,7 +2404,9 @@ function SetupRendering() {
     WebGL.SSBufferCam.getOrCreateStateSet().setTextureAttribute(2,WebGL.DrawBufferTexture);
     WebGL.GIBufferCam.getOrCreateStateSet().setTextureAttribute(2,WebGL.DrawBufferTexture);
     WebGL.PickDebugNode = BuildShadowDebugQuad();
-    WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.GIBufferTexture);
+    
+ //   WebGL.gModelRoot.addChild(WebGL.BakeCam);
+    WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.BakeTexture);
     
     //WebGL.gviewer.view.addChild(WebGL.PickBufferCam);
     
@@ -2424,7 +2415,7 @@ function SetupRendering() {
     
   //  var drawquad = BuildShadowDebugQuad();
   //  drawquad.getOrCreateStateSet().setTextureAttribute(0,WebGL.DrawBufferTexture);
-  //WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+ // WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
     
 
     
@@ -2993,6 +2984,7 @@ function createScene(viewer, url) {
     WebGL.gCameraOffset = [100,100,100];
     
     LoadLandscape("./Assets/Textures/mountain.png");
+   
     Mousedown(-1, -1,1);
     Mouseup(-1, -1,1);
     UpdateCamera();

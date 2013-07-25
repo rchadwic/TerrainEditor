@@ -1,3 +1,9 @@
+/*
+Copyright 2012 Rob Chadwick (rchadwic@gmail.com)
+This work is licensed under a Creative Commons 
+Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+http://creativecommons.org/licenses/by-nc-sa/3.0/
+*/
 
 function BuildSSBufferCamera() {
 
@@ -153,7 +159,7 @@ function GetSSShader() {
 	    "if(aoframecount == 1.0)" +
 	    "{ gl_FragColor = vec4(1.0,1.0,1.0,1.0); return;}" +
 	  
-	    "float base = unpackFloatFromVec4i(cbase)* ((aoframecount-1.0)/aoframecount); ;",
+	    "float base = (cbase.r)* ((aoframecount-1.0)/aoframecount); ;",
 	   
 	    
 	    "float h = unpackFloatFromVec4i(texture2D(heightmap,oTC0.xy)) * 1.0;",
@@ -170,8 +176,8 @@ function GetSSShader() {
 	    "vec4 noise = texture2D(noisemap,(oTC0+normalize(RandomVec).xy)*2.0)-.5;",
 	    "vec3 sunpos = vec3(6.0,5.0,5.0) + (noise.xyz-.5);",
 	    "vec3 sundir = normalize(sunpos-vert.xyz)*(noise.r/2.0+.5);",
-	    "gl_FragColor = packFloatToVec4i(base + (TestVec(sundir,vert.xyz))/(aoframecount));",
-	    
+	    "gl_FragColor = vec4(base + (TestVec(sundir,vert.xyz))/(aoframecount));",
+	    "gl_FragColor.a = 1.0;",
 	    
 	    "}" ].join('\n');
 

@@ -3427,6 +3427,8 @@ osg.BlendFuncSeparate.prototype = {
     getType: function() { return this.attributeType;},
     getTypeMember: function() { return this.attributeType;},
     apply: function(state) { 
+	gl.blendEquation(gl["FUNC_ADD"]);
+	gl.disable(gl["BLEND"]);
         gl.blendFuncSeparate(gl[this.RGBsourceFactor], gl[this.RGBdestinationFactor],gl[this.AsourceFactor], gl[this.AdestinationFactor]); 
     }
 };

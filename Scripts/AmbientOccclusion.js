@@ -1,4 +1,9 @@
-
+/*
+Copyright 2012 Rob Chadwick (rchadwic@gmail.com)
+This work is licensed under a Creative Commons 
+Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+http://creativecommons.org/licenses/by-nc-sa/3.0/
+*/
 function BuildAOBufferCamera() {
 
     var draw_rtt = new osg.Camera();
@@ -154,7 +159,7 @@ function GetAOShader() {
 	    "if(aoframecount == 1.0)" +
 	    "{ gl_FragColor = vec4(1.0,1.0,1.0,1.0); return;}" +
 	  
-	    "float base = unpackFloatFromVec4i(cbase)* ((aoframecount-1.0)/aoframecount); ;",
+	    "float base = (cbase.r)* ((aoframecount-1.0)/aoframecount); ;",
 	   
 	    
 	    "float h = unpackFloatFromVec4i(texture2D(heightmap,oTC0.xy)) * 1.0;",
@@ -172,8 +177,8 @@ function GetAOShader() {
 	    "noise.z = 0.005;",
 	    "noise *= 100.0;",
 	    "noise = normalize(noise);",
-	    "gl_FragColor = packFloatToVec4i(base + (TestVec(invtangentspace * noise.xyz*.4,vert.xyz))/(aoframecount));",
-	    
+	    "gl_FragColor = vec4(base + (TestVec(invtangentspace * noise.xyz*.4,vert.xyz))/(aoframecount));",
+	    "gl_FragColor.a = 1.0;",
 	    
 	    "}" ].join('\n');
 

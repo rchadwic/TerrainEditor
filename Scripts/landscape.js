@@ -1,3 +1,9 @@
+/*
+Copyright 2012 Rob Chadwick (rchadwic@gmail.com)
+This work is licensed under a Creative Commons 
+Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+http://creativecommons.org/licenses/by-nc-sa/3.0/
+*/
 
 var landscapecanvas;
 function SetupTerrainHeight()
@@ -400,7 +406,7 @@ function GetLandscapeShader() {
         	    "vec4 water = .5 * (SRGB_to_Linear(texture2D(watermap,oTC0 * 10.0 + vec2(0.0,float(time)/1000.0))) + SRGB_to_Linear(texture2D(watermap,oTC0.yx * 10.0 + vec2(0.0,float(time)/1000.0))));",
         	    
         	    "vec4 grass = SRGB_to_Linear(texture2D(texture,ScaledTC+ vec2(.02,0.02)));",
-        	    "mixdata = vec4(0.0,0.0,0.0,0.0);",
+        	    "mixdata = vec4(0.0,0.0,0.0,0.01);",
         	    "watermix = 0.0;",
         	    
         	    
@@ -441,9 +447,9 @@ function GetLandscapeShader() {
 	    	"gi = texture2D(gimap,oTC0);",
 	//    "gl_FragColor = gi; return;",
 	    "float ao = 1.0;" +
-	    "if(RenderOptions2[0] == 1.0) ao = (1.0-unpackFloatFromVec4i(texture2D(aomap,oTC0)));",
+	    "if(RenderOptions2[0] == 1.0) ao = (1.0-(texture2D(aomap,oTC0)).r);",
 	    "float ss =  1.0;" +
-	    "if(RenderOptions[1] == 1.0) ss = (1.0-unpackFloatFromVec4i(texture2D(shadowmap,oTC0)));",
+	    "if(RenderOptions[1] == 1.0) ss = (1.0-(texture2D(shadowmap,oTC0)).r);",
 	   
 	    "vec2 PaintPos = texture2D(pickmap,PaintPosition.xy).xy;",
 	    "PaintPos.y = 1.0- PaintPos.y;",
@@ -495,11 +501,13 @@ function GetLandscapeShader() {
 	//    "gl_FragColor =  vec4(totalfog,totalfog,totalfog,1.0 );",
 	    "gl_FragColor.a = 1.0;",
 	    "float len = length(oTC0-PaintPos)/(PaintPosition.z/(512.0*4.0));",
-	    "len = clamp(0.0,1.0,len);",
+	    "len = clamp(len,0.0,1.0);",
 	    "len = pow(1.0-len,PaintOptions[0]);",
-	    "len = clamp(0.0,1.0,len);",
+	    "len = clamp(len,0.0,1.0);",
 	   
 	    "gl_FragColor = mix(gl_FragColor,vec4(1.0-((PaintPosition[3]+.002)*250.0),0.0,(PaintPosition[3]+.002)*250.0,1.0),len); ",
+	    //"gl_FragColor = texture2D(aomap,oTC0);",
+	    //"gl_FragColor.a = 1.0;",
 	     "}" ].join('\n');
 
     var Frag = osg.Shader.create(gl.FRAGMENT_SHADER, fragshader);

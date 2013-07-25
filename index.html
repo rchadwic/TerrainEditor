@@ -1,0 +1,918 @@
+<!--
+Copyright 2012 Rob Chadwick (rchadwic@gmail.com)
+This work is licensed under a Creative Commons 
+Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+http://creativecommons.org/licenses/by-nc-sa/3.0/
+-->
+
+
+<html>
+
+<head>
+<style>
+body {
+	background: black;
+	overflow: hidden;
+	padding: 0;
+	margin: 0;
+	color: white;
+}
+
+a:link {
+	text-decoration: none;
+	color: grey;
+}
+
+a:visited {
+	text-decoration: none;
+	color: grey
+}
+
+a:active {
+	text-decoration: none;
+	color: grey
+}
+
+a:hover {
+	text-decoration: underline;
+	color: grey
+}
+
+#ViewContainer {
+	position: absolute;
+}
+</style>
+
+<title>Weg GL Terrain Editor</title>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+<script type="text/javascript" src="./Scripts/OSGJS/js/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/jquery.mousewheel.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/jquery-ui-1.8.18.custom.min.js"></script>
+
+
+<script type="text/javascript" src="./Scripts/swfobject.js"></script>
+<script type="text/javascript" src="./Scripts/downloadify.min.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/stats.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/webgl-utils.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/osg.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/osgUtil.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/osgAnimation.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/osgGA.js"></script>
+<script type="text/javascript" src="./Scripts/OSGJS/js/osgViewer.js"></script>
+<script type="text/javascript" src="./Scripts/main.js"></script>
+<script type="text/javascript" src="./Scripts/drawing.js"></script>
+<script type="text/javascript" src="./Scripts/landscape.js"></script>
+<script type="text/javascript" src="./Scripts/ambientoccclusion.js"></script>
+<script type="text/javascript" src="./Scripts/softshadows.js"></script>
+<script type="text/javascript" src="./Scripts/godrays.js"></script>
+<script type="text/javascript" src="./Scripts/globalillumination.js"></script>
+<script type="text/javascript" src="./Scripts/jquery.dialogextend.min.js"></script>
+<script type="text/javascript" src="./Scripts/OBJExport.js"></script>
+
+<script type="text/javascript" src="./Scripts/jszip.js"></script>
+<script type="text/javascript" src="./Scripts/jszip-deflate.js"></script>
+<script type="text/javascript" src="./Scripts/jszip-inflate.js"></script>
+<script type="text/javascript" src="./Scripts/jszip-load.js"></script>
+
+<link href="styles/jquery-ui-1.8.18.custom.css" type="text/css" rel="stylesheet">
+
+	  
+<script type="text/javascript">
+var _brushcontext;
+var currentmaterial = "Material 1";
+var automix = true;
+function AutoMix()
+{
+    automix = true;
+    WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],0]);
+    $("#AutoMix").html('Auto');
+}
+function CustomMix()
+{
+    automix = false;
+    WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],1]);
+    $("#AutoMix").html('Custom');
+}
+
+function saveImageAs (imgOrURL) {
+    if (typeof imgOrURL == 'object')
+      imgOrURL = imgOrURL.src;
+    window.win = open (imgOrURL);
+    setTimeout('win.document.execCommand("SaveAs")', 500);
+  }
+ 
+function doSave(num)
+{
+    localStorage["heightmap" + num] = null;
+    localStorage["texturemixmap" + num] = null;
+	var gl = WebGL.gviewer.gl;
+    gl.pixelStorei(gl["UNPACK_PREMULTIPLY_ALPHA_WEBGL"], false);
+    gl.pixelStorei(gl["UNPACK_COLORSPACE_CONVERSION_WEBGL"], false);
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.DrawBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+			try{
+		    	localStorage["heightmap" + num] = WebGL.gviewer.canvas.toDataURL();
+			}
+			catch(e)
+			{
+			    //if (e == QUOTA_EXCEEDED_ERR) {
+			 	 alert(e); //data wasn't successfully saved due to quota exceed so throw an error
+				//}
+			}
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+
+
+	var gl = WebGL.gviewer.gl;
+
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.DrawTextureBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+			try{
+			    	localStorage["texturemixmap" + num] = WebGL.gviewer.canvas.toDataURL();
+				}
+				catch(e)
+				{
+				//    if (e == QUOTA_EXCEEDED_ERR) {
+				 	 alert(e); //data wasn't successfully saved due to quota exceed so throw an error
+				//	}
+				}
+			    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = 1024;
+			WebGL.gviewer.canvas.width = 1280;
+	
+			try{
+			    	localStorage["currentmaterial" + num] = currentmaterial;
+			    	localStorage["AutoMix" + num] = automix;
+				}
+				catch(e)
+				{
+				   // if (e == QUOTA_EXCEEDED_ERR) {
+				 	 alert(e); //data wasn't successfully saved due to quota exceed so throw an error
+					//}
+				}
+    
+    
+}
+function doLoad(num)
+{
+    var load = new Image();
+	load.src = localStorage["heightmap" + num];
+	load.onload = function()
+	{
+	    	var gl = WebGL.gviewer.gl;
+	        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+	        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, false);
+	        gl.bindTexture(gl.TEXTURE_2D, WebGL.DrawBufferTexture.textureObject);
+	        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, load);
+	        refresh();
+	        
+	}
+	
+	var load2 = new Image();
+	load2.src = localStorage["texturemixmap" + num];
+	load2.onload = function()
+	{
+	    	var gl = WebGL.gviewer.gl;
+	        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+	        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, false);
+	        gl.bindTexture(gl.TEXTURE_2D, WebGL.DrawTextureBufferTexture.textureObject);
+	        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, load2);
+	        refresh();
+	        
+	}
+		
+	if(localStorage["currentmaterial" + num] == "Material 1")
+	    {currentmaterial = "Material 1"; WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex1);WebGL.TerrainState.setTexture(5,WebGL.NormalTex1);}
+	if(localStorage["currentmaterial" + num] == "Material 2")
+	    {currentmaterial = "Material 2"; WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex2);WebGL.TerrainState.setTexture(5,WebGL.NormalTex2);}
+	if(localStorage["currentmaterial" + num] == "Material 3")
+	    {currentmaterial = "Material 3"; WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex3);WebGL.TerrainState.setTexture(5,WebGL.NormalTex3);}
+	    
+	    if(localStorage["AutoMix" + num] == true)    
+			AutoMix();
+	    if(localStorage["AutoMix" + num] == false)    
+		    CustomMix();
+	    
+    
+}
+function refresh()
+{
+    grframecount = 0;
+    aoframecount = 0;
+ Mousedown(-1,-1,1);
+ Mouseup(-1,-1,1);
+ WebGL.needsRefresh = false; 
+}
+function LoadLandscape(file)
+{
+		var load = osg.Texture.create(file);
+		load.image.onload = function()
+		{
+		    	var gl = WebGL.gviewer.gl;
+		        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+		        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, false);
+		        gl.bindTexture(gl.TEXTURE_2D, WebGL.DrawBufferTexture.textureObject);
+		        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, load.image);
+		        refresh();
+		        $("#loading").dialog("close");
+		}
+}
+function ShadowsAreOn()
+{
+    return WebGL.gRenderOptionsUniform.data[1] > 0;   
+}
+function AOisOn()
+{
+    return WebGL.gRenderOptionsUniform2.data[0] > 0;   
+}function GIisOn()
+{
+    return WebGL.gRenderOptionsUniform2.data[2] > 0;   
+}
+
+function AtmosphereShadowsAreOn()
+{
+    return WebGL.gRenderOptionsUniform2.data[1] > 1;   
+}
+$(document).ready(function(){
+    
+  
+    Downloadify.create(document.getElementById('ExportOBJ'),{
+	    filename: function(){
+	      return 'Terrain.zip';
+	    },
+	    data: function(){ 
+		
+		$("#loading").dialog("open");
+			var zip = new JSZip();
+			
+		
+			 WebGL.gModelRoot.addChild(WebGL.BakeCam);
+			 WebGL.gviewer.frame();
+				WebGL.gviewer.gl.flush();
+				 WebGL.gviewer.frame();
+					WebGL.gviewer.gl.flush();
+				WebGL.gModelRoot.removeChild(WebGL.BakeCam);
+				
+				var gl = WebGL.gviewer.gl;
+			     
+				WebGL.gviewer.canvas.height = 1024;
+				WebGL.gviewer.canvas.width = 1024;
+						WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.BakeTexture);
+				 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+				 		WebGL.gCamera.setViewport(new osg.Viewport(0, 0, 1024, 1024));
+						WebGL.gviewer.frame();
+						WebGL.gviewer.gl.flush();
+						//WebGL.gviewer.frame();
+						//WebGL.gviewer.gl.flush();
+					    var texture = WebGL.gviewer.canvas.toDataURL();
+
+					    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+						WebGL.gviewer.canvas.height = $(window).height();
+						WebGL.gviewer.canvas.width = $(window).width();
+						WebGL.gCamera.setViewport(new osg.Viewport(0, 0, $(window).width(), $(window).height()));
+						//WebGL.gviewer.frame();
+						//WebGL.gviewer.gl.flush();
+						
+						texture = texture.substr(22);
+			
+			zip.file("Terrain.obj", exportOBJ());
+			zip.file("Terrain.mtl", exportMTL());
+			zip.file("Texture.png", texture, {base64:true});
+			var content = zip.generate({base64:true,compression:"STORE"});
+			$("#loading").dialog("close");
+	    	return content;
+	    
+	    },
+	    onComplete: function(){ 
+	    //  alert('Your File Has Been Saved!'); 
+	  
+				 
+	    },
+	    onCancel: function(){ 
+	      alert('You have cancelled the saving of this file.');
+	    },
+	    onError: function(){ 
+	      alert('Error'); 
+	    },
+	    transparent: false,
+	    swf: './downloadify.swf',
+	    downloadImage: 'images/download.png',
+	    width: 100,
+	    height: 30,
+	    transparent: true,
+	    append: false,
+	    dataType: 'base64'
+	  });
+   
+   
+   
+    $("#Textured").button({label:"Textured"});
+    $("#Textured").click(function(){
+		if($("#Textured").html()=="Textured")
+	    {
+			WebGL.gRenderOptionsUniform.set([1,WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			$("#Textured").html("Relief");
+	    }else if($("#Textured").html()=="Relief")
+		{
+			WebGL.gRenderOptionsUniform.set([2,WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			$("#Textured").html("White");
+		}
+	    else if($("#Textured").html()=="White")
+		{
+			WebGL.gRenderOptionsUniform.set([3,WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			$("#Textured").html("Black");
+		
+		}
+	    else if($("#Textured").html()=="Black")
+		{
+			WebGL.gRenderOptionsUniform.set([0,WebGL.gRenderOptionsUniform.data[1],WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			$("#Textured").html("Textured");
+		
+		}
+    });
+    $("#Textured").html("Textured");
+    
+    $("#AmbientOcclusion").button({label:"AmbientOcclusion"});
+    $("#AmbientOcclusion").click(function(){
+		if($("#AmbientOcclusion").html()=="Off")
+	    {
+			WebGL.gRenderOptionsUniform2.set([1,WebGL.gRenderOptionsUniform2.data[1],WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
+			if(WebGL.needsRefresh == true) 
+				refresh();
+			$("#AmbientOcclusion").html("On");
+	    }else
+		{
+			WebGL.gRenderOptionsUniform2.set([0,WebGL.gRenderOptionsUniform2.data[1],WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
+			$("#AmbientOcclusion").html("Off");
+		
+		}
+    });
+    $("#AmbientOcclusion").html("On");
+    
+    $("#Atmosphere").button({label:"Atmosphere"});
+    $("#Atmosphere").click(function(){
+		if($("#Atmosphere").html()=="Off")
+	    {
+			WebGL.gRenderOptionsUniform2.set([WebGL.gRenderOptionsUniform2.data[0],1,WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
+			$("#Atmosphere").html("Simple");
+	    }else if($("#Atmosphere").html()=="Simple")
+		{
+			WebGL.gRenderOptionsUniform2.set([WebGL.gRenderOptionsUniform2.data[0],2,WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
+			if(WebGL.needsRefresh == true)  
+				refresh();
+			$("#Atmosphere").html("Volume");
+		
+		}
+	    else if($("#Atmosphere").html()=="Volume")
+		{
+			WebGL.gRenderOptionsUniform2.set([WebGL.gRenderOptionsUniform2.data[0],0,WebGL.gRenderOptionsUniform2.data[2],WebGL.gRenderOptionsUniform2.data[3]]);
+			$("#Atmosphere").html("Off");
+		
+		}
+    });
+    $("#Atmosphere").html("Volume");
+    
+    $("#ShadowsOn").button({label:"On"});
+    $("#ShadowsOn").click(function(){
+		if($("#ShadowsOn").html()=="Off")
+	    {
+			WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],1,WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			if(WebGL.needsRefresh == true) 
+				refresh();
+			$("#ShadowsOn").html("On");
+	    }else
+		{
+			WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],0,WebGL.gRenderOptionsUniform.data[2],WebGL.gRenderOptionsUniform.data[3]]);
+			$("#ShadowsOn").html("Off");
+		}
+    });
+    $("#ShadowsOn").html("On");
+ 
+
+    $("#Globalllumination").button({label:"On"});
+    $("#Globalllumination").click(function(){
+		if($("#Globalllumination").html()=="Off")
+	    {
+			WebGL.gRenderOptionsUniform2.set([WebGL.gRenderOptionsUniform2.data[0],WebGL.gRenderOptionsUniform2.data[1],1,WebGL.gRenderOptionsUniform2.data[3]]);
+			if(WebGL.needsRefresh == true) 
+				refresh();
+			$("#Globalllumination").html("On");
+	    }else
+		{
+			WebGL.gRenderOptionsUniform2.set([WebGL.gRenderOptionsUniform2.data[0],WebGL.gRenderOptionsUniform2.data[1],0,WebGL.gRenderOptionsUniform2.data[3]]);
+			$("#Globalllumination").html("Off");
+		}
+    });
+    $("#Globalllumination").html("On");
+    
+    
+    $("#NormalOn").button({label:"On"});
+    $("#NormalOn").click(function(){
+		if($("#NormalOn").html()=="Off")
+		    {
+				WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],WebGL.gRenderOptionsUniform.data[1],1,WebGL.gRenderOptionsUniform.data[3]]);
+				$("#NormalOn").html('On');
+		    }else
+			{
+			WebGL.gRenderOptionsUniform.set([WebGL.gRenderOptionsUniform.data[0],WebGL.gRenderOptionsUniform.data[1],0,WebGL.gRenderOptionsUniform.data[3]]);
+			$("#NormalOn").html('Off');
+			}
+		});
+    $("#NormalOn").html('On');
+    
+    $("#BrushDraw").button({label:"Pull"});
+    $("#BrushDraw").click(function(){drawtarget="Height";brushmode=0.0;});
+    $("#BrushDraw").html('Pull');
+    
+    
+    $("#BrushTexture1").button({label:"Tex 1"});
+    $("#BrushTexture1").click(function(){CustomMix();drawtarget="Texture";WebGL.TexturePaintChoice.set([1,0,0,0]);});
+    $("#BrushTexture2").button({label:"Tex 2"});
+    $("#BrushTexture2").click(function(){CustomMix();drawtarget="Texture";WebGL.TexturePaintChoice.set([0,1,0,0]);});
+    $("#BrushTexture3").button({label:"Tex 3"});
+    $("#BrushTexture3").click(function(){CustomMix();drawtarget="Texture";WebGL.TexturePaintChoice.set([0,0,1,0]);});
+    $("#BrushTexture4").button({label:"Tex 4"});
+    $("#BrushTexture4").click(function(){CustomMix();drawtarget="Texture";WebGL.TexturePaintChoice.set([0,0,0,1]);});
+    
+    $("#BrushTexture1").html('A');
+    $("#BrushTexture2").html('B');
+    $("#BrushTexture3").html('C');
+    $("#BrushTexture4").html('D');
+    
+    $("#BrushBlur").button({label:"Smooth"});
+    $("#BrushBlur").click(function(){drawtarget="Height";brushmode=1.0;});
+    $("#BrushBlur").html('Smooth');
+    $("#BrushSet").button({label:"Set"});
+    $("#BrushSet").click(function(){drawtarget="Height";brushmode=2.0;});
+    $("#BrushSet").html('Set');
+    $("#BrushNoise").button({label:"Noise"});
+    $("#BrushNoise").click(function(){drawtarget="Height";brushmode=3.0;});
+    $("#BrushNoise").html('Noise');
+    
+    $("#Material1").button({label:"Material 1"});
+    $("#Material1").click(function(){currentmaterial = "Material 1"; WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex1);WebGL.TerrainState.setTexture(5,WebGL.NormalTex1);});
+    $("#Material1").html('Jungle');
+    
+    $("#Material2").button({label:"Material 2"});
+    $("#Material2").click(function(){currentmaterial = "Material 2"; WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex2);WebGL.TerrainState.setTexture(5,WebGL.NormalTex2);});
+    $("#Material2").html('Mountains');
+    
+    $("#Material3").button({label:"Material 3"});
+    $("#Material3").click(function(){currentmaterial = "Material 3"; WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex3);WebGL.TerrainState.setTexture(5,WebGL.NormalTex3);});
+    $("#Material3").html('Desert');
+    
+   
+   
+    $("#AutoMix").button({label:"Auto"});
+    $("#AutoMix").click(function(){
+		if($("#AutoMix").html()=="Auto")
+		{
+		    CustomMix();
+			$("#AutoMix").html('Custom');
+		}else
+		{
+			AutoMix();
+			$("#AutoMix").html('Auto');
+		}
+		    
+	});
+    $("#AutoMix").html('Auto');
+    
+    $("#UpdateHeightmap").button({label:"Height"});
+    $("#UpdateHeightmap").click(function(){
+		
+	var gl = WebGL.gviewer.gl;
+        gl.pixelStorei(gl["UNPACK_PREMULTIPLY_ALPHA_WEBGL"], false);
+        gl.pixelStorei(gl["UNPACK_COLORSPACE_CONVERSION_WEBGL"], false);
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.DrawBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = $(window).height();
+			WebGL.gviewer.canvas.width = $(window).width();
+	});
+    $("#UpdateHeightmap").html('Height');
+    
+    $("#UpdateTexturemap").button({label:"Texture"});
+    $("#UpdateTexturemap").click(function(){
+		
+	var gl = WebGL.gviewer.gl;
+        gl.pixelStorei(gl["UNPACK_PREMULTIPLY_ALPHA_WEBGL"], false);
+        gl.pixelStorei(gl["UNPACK_COLORSPACE_CONVERSION_WEBGL"], false);
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.DrawTextureBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = $(window).height();
+			WebGL.gviewer.canvas.width = $(window).width();
+	});
+    $("#UpdateTexturemap").html('Texture');
+    
+    $("#UpdatePickmap").button({label:"Pick"});
+    $("#UpdatePickmap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.PickBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = $(window).height();
+			WebGL.gviewer.canvas.width = $(window).width();
+	});
+    $("#UpdatePickmap").html('Pick');
+    
+    $("#UpdateShadowmap").button({label:"Shadow"});
+    $("#UpdateShadowmap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.SSBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = $(window).height();
+			WebGL.gviewer.canvas.width = $(window).width();
+	});
+    
+    $("#UpdateShadowmap").html('Shadow');
+    
+    $("#UpdateAOmap").button({label:"Shadow"});
+    $("#UpdateAOmap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.AOBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = $(window).height();
+			WebGL.gviewer.canvas.width = $(window).width();
+	});
+    
+    $("#UpdateAOmap").html('AO');
+    
+    $("#UpdateGIMap").button({label:"GI"});
+    $("#UpdateGIMap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.GIBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = $(window).height();
+			WebGL.gviewer.canvas.width = $(window).width();
+	});
+    
+    $("#UpdateGIMap").html('GI');
+    
+    $("#UpdateShadowVolumeMap").button({label:"S. Volume"});
+    $("#UpdateShadowVolumeMap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.ShadowVolumeBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = $(window).height();
+			WebGL.gviewer.canvas.width = $(window).width();
+	});
+    
+    $("#UpdateShadowVolumeMap").html('S. Volume');
+    
+    $("#UpdateRaysMap").button({label:"Rays"});
+    $("#UpdateRaysMap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.GodRaysAccumulatorTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = $(window).height();
+			WebGL.gviewer.canvas.width = $(window).width();
+	});
+    
+    $("#UpdateRaysMap").html('Rays');
+    
+    $("#UpdateDepthMap").button({label:"Depth"});
+    $("#UpdateDepthMap").click(function(){
+		
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.PickDebugNode.getOrCreateStateSet().setTextureAttribute(0,WebGL.DepthBufferTexture);
+	 		WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+		    WebGL.gviewer.scene.removeChild(WebGL.PickDebugNode);
+			WebGL.gviewer.canvas.height = $(window).height();
+			WebGL.gviewer.canvas.width = $(window).width();
+	});
+    
+    $("#UpdateDepthMap").html('Depth');
+    
+    $("#render").button({label:"R"});
+    $("#render").click(function(){
+		
+	
+	WebGL.gviewer.canvas.height = 512;
+	WebGL.gviewer.canvas.width = 512;
+			WebGL.gviewer.frame();
+			WebGL.gviewer.gl.flush();
+		    document.getElementById("heightmap").src = WebGL.gviewer.canvas.toDataURL();
+			WebGL.gviewer.canvas.height = $(window).height();
+			WebGL.gviewer.canvas.width = $(window).width();
+		    
+	});
+    $("#render").html('R');
+    
+   
+    $("#crater").button({label:"crater"});
+    $("#crater").click(function(){
+	   
+	
+	 LoadLandscape("./Assets/Textures/crater.png");
+	 WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex2);
+	 WebGL.TerrainState.setTexture(5,WebGL.NormalTex2);
+	 refresh();
+		
+	});
+    $("#crater").html('Crater');
+    
+    $("#mountain").button({label:"mountain"});
+    $("#mountain").click(function(){
+	   
+	
+	 LoadLandscape("./Assets/Textures/mountain.png");
+	 WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex1);
+	 WebGL.TerrainState.setTexture(5,WebGL.NormalTex1);
+	 refresh();
+		
+	});
+    $("#mountain").html('Mountain');
+    
+    $("#canyon").button({label:"canyon"});
+    $("#canyon").click(function(){
+	   
+	
+	 LoadLandscape("./Assets/Textures/canyon.png");
+	 WebGL.TerrainState.setTexture(0,WebGL.DiffuseTex3);
+	 WebGL.TerrainState.setTexture(5,WebGL.NormalTex3);
+	 refresh();
+		
+	});
+    $("#canyon").html('Canyon');
+    
+    $("#save1").button({label:"save"});
+    $("#save1").click(function(){
+		doSave("1");	
+	});
+    $("#save1").html('save');
+    
+
+    $("#load1").button({label:"load"});
+    $("#load1").click(function(){
+		doLoad("1");
+	});
+    $("#load1").html('load');
+    
+    $("#save2").button({label:"save"});
+    $("#save2").click(function(){
+		doSave("2");	
+	});
+    $("#save2").html('save');
+    
+
+    $("#load2").button({label:"load"});
+    $("#load2").click(function(){
+		doLoad("2");
+	});
+    $("#load2").html('load');
+    
+    $("#save3").button({label:"save"});
+    $("#save3").click(function(){
+		doSave("3");	
+	});
+    $("#save3").html('save');
+    
+
+    $("#load3").button({label:"load"});
+    $("#load3").click(function(){
+		doLoad("3");
+	});
+    $("#load3").html('load');
+    
+   
+    
+    $("#BrushStregnth").slider({min:-.005,max:.005,step:.0001,label:"Size",slide:function(event, ui){
+	    brushstrength = ui.value;
+	}});
+    
+    $("#BrushFalloff").slider({min:0,max:2,step:.001,label:"Size",slide:function(event, ui){
+		brushfalloff = ui.value;
+	}});
+    
+    $("#BrushSize").slider({min:1,max:200,label:"Size",slide:function(event, ui){
+	    brushsize = ui.value * 2;
+    }});
+    
+    $('#BrushSize').slider("option","value", 80);
+    brushsize = 160;
+    $('#BrushStregnth').slider("option","value", .01);
+    brushstrength = .01; 
+    $('#BrushFalloff').slider("option","value", 1);
+    brushfalloff = 1;
+    
+  //  $("#Rendering").dialog({title:"View Options",position:[240,0],width:160});
+  //  $("#HeightmapPreview").dialog({height:250,width:230,title:"Height Map",position:[0,0]});
+  //  $("#Material").dialog({title:"Material Options",position:[795,0],width:170});
+  //  $("#Brushoptions").dialog({title:"Brush Options",position:[980,0]});
+    
+    $(function() {
+		$( "#accordion" ).accordion({
+			fillSpace: true
+		});
+	});
+	$(function() {
+		$( "#accordionResizer" ).resizable({
+			minHeight: 140,
+			resize: function() {
+				$( "#accordion" ).accordion( "resize" );
+			}
+		});
+	});
+
+	$("#accordionDialog").dialog({title:"Terrain Editor",position:[0,0],width:260,height:430,closeOnEscape: false,
+	    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide();}}).dialogExtend({
+	        "maximize" : false,
+	        "minimize" : true,
+	        "dblclick" : "minimize",
+	        "icons" : { "maximize" : "ui-icon-arrow-4-diag" }
+	      });
+	$("#BrushOptionHelp").dialog({title:"Brush Options Help",position:'center',width:'400px',height:'auto',modal:true,autoOpen: false});
+	$("#intro").dialog({title:"About",position:'center',width:'400px',height:'auto',modal:true,autoOpen: true});
+	
+	$("#loading").dialog({title:"Loading",position:'center',width:'auto',height:'auto',modal:true,autoOpen: true});
+	
+	document.getElementById("WebGLCanvas").width = $(window).width();
+	document.getElementById("WebGLCanvas").height = $(window).height();
+	
+	$(window).resize(function() {
+	    document.getElementById("WebGLCanvas").width = $(window).width();
+		document.getElementById("WebGLCanvas").height = $(window).height();
+		
+		WebGL.gCamera.setViewport(new osg.Viewport(0, 0, $(window).width(), $(window).height()));
+	  });
+	
+	initWebGL("file:///C:/Development\\HTML5Game\\Assets\\Models\\matv01_veh.json", false, "Y", 1.0  );
+});
+</script>
+
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-30224462-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</head>
+
+
+
+<body style="font-size:10px">
+
+	<div id="BrushOptionHelp">The tools below modify the terrain. Use the 'Paint Terrain Height' tools to edit the terrain shape, and the 'Paint Terrain Texture' tools to paint the texture. When you use the texture paint tools, the texture mode in 'Render Settings' will flip to 'Custom'. Change this back to 'Auto' to automatically paint the texture. </br></br> Size: The size of the brush head. </br></br>Strength: The amount of effect to apply. Note that 0 is the center, and to the left is negative. Some tools do nothing with negative strength. </br></br> Falloff: The curve of falloff toward the outer edge of the brush. </br></br> Pull: Pull or push the terrain. Negative strength pushes down, and positive pulls up. </br></br> Smooth: Blur the terrain, making it smoother. </br></br> Set: Directly set the height. Strength defines the height to set to. </br></br> Noise: Add some randomness to the terrain. Use this with a small brush and low falloff for the best effect.</div>
+	<div id="canvas_Wrapper" >
+		<canvas id="WebGLCanvas" style="border: none ;" width=512 height=512>
+		
+		</canvas>
+		<div id="accordionDialog">
+		<div id="accordion">
+		
+			<h3><a href="#">Editing Tools</a></h3>
+			<div id="Brushoptions" style="color:black;top:0px;left:0px">
+				<div style= "font-size:10px;color:blue" onclick='$("#BrushOptionHelp").dialog("open");'>Help</div>
+				Brush Properties: </br></br>
+				Size<div id="BrushSize" ></div>
+				Strength<div id="BrushStregnth" ></div>
+				Falloff<div id="BrushFalloff" ></div>
+				</br>Paint Terrain Height:</br>
+				<div id="BrushDraw" style="width:50px"></div>
+				<div id="BrushBlur" style="width:50px"></div>
+				<div id="BrushSet" style="width:50px"></div>	
+				<div id="BrushNoise" style="width:50px"></div>		
+				<div id="BrushHeight" style="width:50px"></div>	
+				</br>Paint Terrain Texture:</br>
+				<div id="BrushTexture1" style="width:50px"></div>
+				<div id="BrushTexture2" style="width:50px"></div>	
+				<div id="BrushTexture3" style="width:50px"></div>	
+				<div id="BrushTexture4" style="width:50px"></div>					
+				
+			</div>
+			<h3><a href="#">Render Options</a></h3>
+			<div id="Rendering" style="color:black;top:0px;left:0px">
+			
+				<table style="color:black;font-size:10px">
+						<tr><td>Mapping:</td><td> <div id="Textured" ></div></td></tr>
+						<tr><td>Shadows:</td><td> <div id="ShadowsOn" ></div></td></tr>
+						<tr><td>Ambient Occlusion:</td><td> <div id="AmbientOcclusion" ></div></td></tr>
+						<tr><td>Global Illumination:</td><td> <div id="Globalllumination" ></div></td></tr>
+						<tr><td>Normal Map:</td><td> <div id="NormalOn" ></div></td></tr>
+						<tr><td>Texture:</td><td> <div id="AutoMix" ></div></td></tr>
+						<tr><td>Atmosphere:</td><td> <div id="Atmosphere" ></div></td></tr>
+				</table>
+			<div></br>The options effect the rendered view. Turn options off to acheive a faster framerate. You may need to click in the window to force a redraw after changing some options.</div>
+			</div>
+			<h3><a href="#">Set Material</a></h3>
+			<div id="Material" style="color:black;top:0px;left:0px">
+			
+				<div id="Material1" ></div>
+				<div id="Material2" ></div>
+				<div id="Material3" ></div>
+			<div></br>Click the buttons above to swap the texture set on the terrain. This is non-destructive: if you've painted a texture, the texture mix will be applied to the new set of textures.</div>
+			</div>
+			<h3><a href="#">View Buffers</a></h3>
+			<div id="HeightmapPreview" style="color:black;top:0px;left:0px">
+				<img id="heightmap" style="background-color:black"width=150 height=150 onclick="saveImageAs(document.getElementById('heightmap'));"></br>
+				<div id="UpdateHeightmap" ></div>
+				<div id="UpdateTexturemap" ></div>
+				<div id="UpdatePickmap" ></div>
+				<div id="UpdateShadowmap" ></div>
+				<div id="UpdateAOmap" ></div>
+				<div id="UpdateShadowVolumeMap" ></div>
+				<div id="UpdateRaysMap" ></div>
+				<div id="UpdateDepthMap" ></div>
+				<div id="UpdateGIMap" ></div>
+				<div id="render" ></div>
+				</br>
+				<div>Use this to view the under-the-hood texture buffers. </div>
+			</div>
+			<h3><a href="#">Load Examples</a></h3>
+			<div id="Load" style="color:black;top:0px;left:0px">
+				<div id="crater" ></div>
+				<div id="mountain" ></div>
+				<div id="canyon" ></div>
+				<div></br>Load an example terrain. This is destructive! You'll loose whatever you're working on.</div>
+				</br></br>
+				Slot 1:
+				<div id="save1" ></div>
+				<div id="load1" ></div>
+				</br>
+				Slot 2:
+				<div id="save2" ></div>
+				<div id="load2" ></div>
+				</br>
+				Slot 3:
+				<div id="save3" ></div>
+				<div id="load3" ></div>
+				</br>
+			
+				<div id="ExportOBJ" ></div>
+				<div id="ExportTexture" ></div>
+				<div>Save and load a terrain. This uses HTML5 LocalStorage, so it will persist even after you close the browser.</div>
+			</div>
+		</div>
+		</div>
+	</div>
+<div id="intro">An editor for height map terrains by Rob Chadwick (rchadwic@gmail.com). This experiment uses WebGL for rendering the height field, and also for the editing operations. The rendering pipeline uses the GPU to accelerate raytracing for soft shadows, ambient occlusion, global illumination and volumetric atmosphere shadows. The height map generates tangent space in a shader, and uses texture atlases for diffuse and normal mapping. The diffuse lighting term is supplied by precomputed spherical harmonics. All operations use floating point values packed into RGBA textures, so it should not require any special WebGL extensions. </br> Use the right mouse button and wheel to navigate, and the left button to edit. Buffers will be redrawn on mouseup. The samples for the raytraced effects accumulate over time, and should be nice and smooth after 30 seconds or so. </div>
+<div id="loading"><img src="./images/loading2.gif"></img></div>
+</body>
+
+</html>

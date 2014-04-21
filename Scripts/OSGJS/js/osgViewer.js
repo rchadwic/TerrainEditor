@@ -329,7 +329,7 @@ osgViewer.Viewer.prototype = {
 
         if(this.prerender)
             this.prerender(this.frameRate/1000.0);
-        
+        console.log("frame");
         if (this.updateVisitor.getFrameStamp().getFrameNumber() === 0) {
             this.updateVisitor.getFrameStamp().setReferenceTime(frameTime/1000.0);
             this.numberFrame = 0;

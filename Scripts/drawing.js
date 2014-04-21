@@ -4,98 +4,45 @@ This work is licensed under a Creative Commons
 Attribution-NonCommercial-ShareAlike 3.0 Unported License.
 http://creativecommons.org/licenses/by-nc-sa/3.0/
 */
+
+
+
+
 function BuildDrawBufferCamera() {
 
-    var draw_rtt = new osg.Camera();
-    draw_rtt.setName("rtt_drawcamera");
-    var draw_rttSize = [ 512, 512 ];
-    // rttSize = [1920,1200];
-    // rtt.setProjectionMatrix(osg.Matrix.makePerspective(60, 1, .1, 10000));
-    //rtt.setProjectionMatrix(osg.Matrix.makeOrtho(-1, 1, -1, 1, .1, 10000.0));
-    draw_rtt.setRenderOrder(osg.Camera.PRE_RENDER, 0);
-    draw_rtt.setReferenceFrame(osg.Transform.ABSOLUTE_RF);
-    draw_rtt.setViewport(new osg.Viewport(0, 0, draw_rttSize[0], draw_rttSize[1]));
-
-    var draw_rttTexture = new osg.Texture();
-
-    draw_rttTexture.wrap_s = 'CLAMP_TO_EDGE';
-    draw_rttTexture.wrap_t = 'CLAMP_TO_EDGE';
-    draw_rttTexture.setTextureSize(draw_rttSize[0], draw_rttSize[1]);
-    draw_rttTexture.setMinFilter('NEAREST');
-    draw_rttTexture.setMagFilter('NEAREST');
-
-    draw_rtt.attachTexture(gl.COLOR_ATTACHMENT0, draw_rttTexture, 0);
-
-    draw_rtt.setClearDepth(1.0);
-    draw_rtt.setClearMask(gl.DEPTH_BUFFER_BIT);
-    
-    // rtt.setStateSet(new osg.StateSet());
-   // draw_rtt.getOrCreateStateSet().setAttribute(GetPickShader());
-    draw_rtt.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
-   
-    draw_rtt.setClearColor([ 0, 0, 0, 1 ]);
-    //rtt.getOrCreateStateSet().setAttribute(new osg.Depth('ALWAYS'));
-    //draw_rtt.getOrCreateStateSet().setAttribute(new osg.CullFace());
-   
-   // draw_rtt.getOrCreateStateSet().addUniform(osg.Uniform.createFloat3([1,1,1], "randomColor"));
-    WebGL.DrawBufferCam = draw_rtt;
-    WebGL.DrawBufferTexture = draw_rttTexture;
+    var  togglecam = new toggleRTTCam();
+    WebGL.DrawBufferCam = togglecam;
+    WebGL.DrawBufferTexture = togglecam.texA;
     
     var quad =  osg.createTexuredQuad(-1,-1,0,
             2, 0 ,0,
             0, 2,0);
+	togglecam.registerStateSetTexture(quad.getOrCreateStateSet(),0);
+    
     quad.getOrCreateStateSet().setAttribute(GetDrawingShader());
-    quad.getOrCreateStateSet().setTextureAttribute(0,draw_rttTexture);
     quad.getOrCreateStateSet().addUniform(WebGL.gPaintPositionUniform);
     quad.getOrCreateStateSet().addUniform(WebGL.gTimeUniform);
     
     WebGL.DrawBufferCam.addChild(quad);
-    //document.getElementById('HeightmapPreview').appendChild(draw_rttTexture.image); 
+
+    
 }
 
 
 function BuildTextureBufferCamera() {
 
-    var draw_rtt = new osg.Camera();
-    draw_rtt.setName("rtt_drawtexturecamera");
-    var draw_rttSize = [ 512, 512 ];
-    // rttSize = [1920,1200];
-    // rtt.setProjectionMatrix(osg.Matrix.makePerspective(60, 1, .1, 10000));
-    //rtt.setProjectionMatrix(osg.Matrix.makeOrtho(-1, 1, -1, 1, .1, 10000.0));
-    draw_rtt.setRenderOrder(osg.Camera.PRE_RENDER, 0);
-    draw_rtt.setReferenceFrame(osg.Transform.ABSOLUTE_RF);
-    draw_rtt.setViewport(new osg.Viewport(0, 0, draw_rttSize[0], draw_rttSize[1]));
+    var togglecam = new toggleRTTCam();
 
-    var draw_rttTexture = new osg.Texture();
-
-    draw_rttTexture.wrap_s = 'CLAMP_TO_EDGE';
-    draw_rttTexture.wrap_t = 'CLAMP_TO_EDGE';
-    draw_rttTexture.setTextureSize(draw_rttSize[0], draw_rttSize[1]);
-    draw_rttTexture.setMinFilter('NEAREST');
-    draw_rttTexture.setMagFilter('NEAREST');
-
-    draw_rtt.attachTexture(gl.COLOR_ATTACHMENT0, draw_rttTexture, 0);
-
-    draw_rtt.setClearDepth(1.0);
-    draw_rtt.setClearMask(gl.DEPTH_BUFFER_BIT);
-    
-    // rtt.setStateSet(new osg.StateSet());
-   // draw_rtt.getOrCreateStateSet().setAttribute(GetPickShader());
-    draw_rtt.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
-   
-    draw_rtt.setClearColor([ 0, 0, 0, 1 ]);
-    //rtt.getOrCreateStateSet().setAttribute(new osg.Depth('ALWAYS'));
-    //draw_rtt.getOrCreateStateSet().setAttribute(new osg.CullFace());
-   
-   // draw_rtt.getOrCreateStateSet().addUniform(osg.Uniform.createFloat3([1,1,1], "randomColor"));
-    WebGL.DrawTextureBufferCam = draw_rtt;
-    WebGL.DrawTextureBufferTexture = draw_rttTexture;
+    WebGL.DrawTextureBufferCam = togglecam;
+    WebGL.DrawTextureBufferTexture = togglecam.texA;
     
     var quad =  osg.createTexuredQuad(-1,-1,0,
             2, 0 ,0,
             0, 2,0);
     quad.getOrCreateStateSet().setAttribute(GetTextureDrawingShader());
-    quad.getOrCreateStateSet().setTextureAttribute(0,draw_rttTexture);
+    
+    WebGL.DrawTextureBufferCam.registerStateSetTexture(quad.getOrCreateStateSet(),0);
+
     quad.getOrCreateStateSet().addUniform(WebGL.gPaintPositionUniform);
     quad.getOrCreateStateSet().addUniform(WebGL.gTimeUniform);
     
@@ -171,11 +118,13 @@ function GetDrawingShader() {
 	    "float stregnth = 60.0 * PaintPosition[3] * FrameTime;",
 	    "vec2 PaintPos = texture2D(pickmap,PaintPosition.xy).xy;",
 	    "PaintPos.y = 1.0- PaintPos.y;",
+	    "gl_FragColor = texture2D(texture,oTC0); ",
 	    "if(PaintOptions[1]==0.0)",
 	    "{",
         	    "float base = unpackFloatFromVec4i(texture2D(texture,oTC0));",
         	    "float ret = 0.0;",
         	    "ret = base;",
+        	    
         	    "float len = length(oTC0-PaintPos.xy)/(PaintPosition.z/(512.0*4.0));",
         	    "if( len< 1.0)" ,
         	    "{" ,
@@ -183,7 +132,7 @@ function GetDrawingShader() {
         	    "} ",
         	    "if(len > 1.0)" ,
         	    "{" ,
-        	    	"discard;" ,
+        	    	"return;" ,
         	    "} ",
         	    "ret = clamp(ret,0.0,1.0);",
         	    "gl_FragColor = packFloatToVec4i(ret);",
@@ -224,7 +173,7 @@ function GetDrawingShader() {
 	    	"}",
 	    	"if(len > 1.0)" ,
         	"{" ,
-        		"discard;",
+        		"return;",
         	"} ",
 	     "}",
 	     "if(PaintOptions[1]==3.0)",
@@ -240,7 +189,7 @@ function GetDrawingShader() {
 		    	"}",
 		    	"if(len > 1.0)" ,
 	        	"{" ,
-	        		"discard;",
+	        		"return;",
 	        	"} ",
 		     "}",
 	    

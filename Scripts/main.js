@@ -1244,7 +1244,7 @@ function initWebGL(location, showscreenshot, upaxis, scale  ) {
     //WebGL.gPID = WebGL.gPID.replace("pid=", "ContentObjectID=");
 
     var viewer;
-    try {
+   
 	LoadQueryParams();
 	viewer = new osgViewer.Viewer(canvas);
 	//viewer.initStats({statsMaxMS:50,statsStepMS:10});
@@ -1258,11 +1258,7 @@ function initWebGL(location, showscreenshot, upaxis, scale  ) {
 	// viewer.setupManipulator();
 	WebGL.gviewer = viewer;
 	createScene(viewer, location);
-    } catch (er) {
-	osg.log("exception in osgViewer " + er);
-	alert(er);
-    }
-    
+   
     BindInputs();
 
     if (WebGL.InUpload == true) {
@@ -2400,9 +2396,13 @@ function SetupRendering() {
    // WebGL.gCamera.addChild(WebGL.GodRaysBufferCam);
     WebGL.gCamera.addChild(WebGL.GodRaysAccumulatorCam);
     
-    WebGL.AOBufferCam.getOrCreateStateSet().setTextureAttribute(2,WebGL.DrawBufferTexture);
-    WebGL.SSBufferCam.getOrCreateStateSet().setTextureAttribute(2,WebGL.DrawBufferTexture);
-    WebGL.GIBufferCam.getOrCreateStateSet().setTextureAttribute(2,WebGL.DrawBufferTexture);
+   
+
+    WebGL.DrawBufferCam.registerStateSetTexture( WebGL.AOBufferCam.getOrCreateStateSet(),2);
+    WebGL.DrawBufferCam.registerStateSetTexture( WebGL.SSBufferCam.getOrCreateStateSet(),2);
+    WebGL.DrawBufferCam.registerStateSetTexture( WebGL.GIBufferCam.getOrCreateStateSet(),2);
+
+
     WebGL.PickDebugNode = BuildShadowDebugQuad();
     
  //   WebGL.gModelRoot.addChild(WebGL.BakeCam);
@@ -2413,9 +2413,11 @@ function SetupRendering() {
     
     WebGL.gviewer.frame();
     
-  //  var drawquad = BuildShadowDebugQuad();
+ 
+ //  var drawquad = BuildShadowDebugQuad();
+  // WebGL.DrawBufferCam.registerStateSetTexture( drawquad.getOrCreateStateSet(),0);
   //  drawquad.getOrCreateStateSet().setTextureAttribute(0,WebGL.DrawBufferTexture);
- // WebGL.gviewer.scene.addChild(WebGL.PickDebugNode);
+ // WebGL.gviewer.scene.addChild(drawquad);
     
 
     

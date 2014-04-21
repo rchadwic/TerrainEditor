@@ -7,47 +7,18 @@ http://creativecommons.org/licenses/by-nc-sa/3.0/
 
 function BuildGIBufferCamera() {
 
-    var draw_rtt = new osg.Camera();
-    draw_rtt.setName("rtt_drawcamera");
-    var draw_rttSize = [ 512, 512 ];
-    // rttSize = [1920,1200];
-    // rtt.setProjectionMatrix(osg.Matrix.makePerspective(60, 1, .1, 10000));
-    //rtt.setProjectionMatrix(osg.Matrix.makeOrtho(-1, 1, -1, 1, .1, 10000.0));
-    draw_rtt.setRenderOrder(osg.Camera.PRE_RENDER, 0);
-    draw_rtt.setReferenceFrame(osg.Transform.ABSOLUTE_RF);
-    draw_rtt.setViewport(new osg.Viewport(0, 0, draw_rttSize[0], draw_rttSize[1]));
-
-    var draw_rttTexture = new osg.Texture();
-
-    draw_rttTexture.wrap_s = 'CLAMP_TO_EDGE';
-    draw_rttTexture.wrap_t = 'CLAMP_TO_EDGE';
-    draw_rttTexture.setTextureSize(draw_rttSize[0], draw_rttSize[1]);
-    draw_rttTexture.setMinFilter('LINEAR');
-    draw_rttTexture.setMagFilter('LINEAR');
-
-    draw_rtt.attachTexture(gl.COLOR_ATTACHMENT0, draw_rttTexture, 0);
-
-    draw_rtt.setClearDepth(1.0);
-    draw_rtt.setClearMask(gl.DEPTH_BUFFER_BIT);
-    
-    // rtt.setStateSet(new osg.StateSet());
-   // draw_rtt.getOrCreateStateSet().setAttribute(GetPickShader());
-    draw_rtt.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
-   
-    draw_rtt.setClearColor([ 0, 0, 0, 1 ]);
-    //rtt.getOrCreateStateSet().setAttribute(new osg.Depth('ALWAYS'));
-    //draw_rtt.getOrCreateStateSet().setAttribute(new osg.CullFace());
-   
-   // draw_rtt.getOrCreateStateSet().addUniform(osg.Uniform.createFloat3([1,1,1], "randomColor"));
-    WebGL.GIBufferCam = draw_rtt;
-    WebGL.GIBufferTexture = draw_rttTexture;
+   var togglecam = new toggleRTTCam();
+    WebGL.GIBufferCam = togglecam;
+    WebGL.GIBufferTexture = togglecam.texA;
     
     var quad =  osg.createTexuredQuad(-1,-1,0,
             2, 0 ,0,
             0, 2,0);
     quad.getOrCreateStateSet().setAttribute(GetGIShader());
-    quad.getOrCreateStateSet().setTextureAttribute(4,draw_rttTexture);
-  
+   
+  	
+  	WebGL.GIBufferCam.registerStateSetTexture(quad.getOrCreateStateSet(),4);
+
     quad.getOrCreateStateSet().addUniform(WebGL.AOFrameCount);
     quad.getOrCreateStateSet().addUniform(WebGL.AOSampleVec);
     WebGL.GIBufferCam.addChild(quad);
@@ -55,7 +26,10 @@ function BuildGIBufferCamera() {
     var diffusetex3 = osg.Texture.create("./Assets/Textures/noise.jpg");
     quad.getOrCreateStateSet().setTexture(1, diffusetex3);
     quad.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(4,"basemap"));
-    quad.getOrCreateStateSet().setTexture(3, WebGL.SSBufferTexture);
+   
+
+    WebGL.SSBufferCam.registerStateSetTexture(quad.getOrCreateStateSet(),3);
+
     quad.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(1,"noisemap"));
     quad.getOrCreateStateSet().addUniform(WebGL.gTimeUniform);
     //document.getElementById('HeightmapPreview').appendChild(draw_rttTexture.image); 
@@ -273,12 +247,12 @@ function GetGIShader() {
 	    "float hitbright = 1.0-unpackFloatFromVec4i(texture2D(shadowmap,hitpoint));",
 	    "vec3 hitnorm = GetNormalAt(hitpoint);",
 	    "vec4 hitvert = vec4(hitpoint.x, unpackFloatFromVec4i(texture2D(heightmap,oTC0.xy)),hitpoint.y,1.0);",
-	    "float gi =  hitbright * clamp(pow(dot(norm,hitnorm),1.0),0.0,1.0);",
+	    "float gi =   clamp(pow(dot(norm,hitnorm),1.0),0.0,1.0);",
 	   
 	    
-	    "gi = clamp(gi/clamp(distance(hitvert.xyz,vert.xyz)*20.0,0.0,4.0),0.0,1.0);",
-	    "vec4 gi4 = gi * (GetSHDirect(hitnorm));",
-	    
+	    "gi = clamp(gi/clamp(distance(hitvert.xyz,vert.xyz)*200.0,0.0,4.0),0.0,1.0);",
+	    "vec4 gi4 =  vec4(length(hitpoint - vert.xy));",
+	    "gi4 = gi4 * gi4;",
 	/*    "vec4 diffusetexture = vec4(0.0,0.0,0.0,0.0);",
 	    "if(RenderOptions[0] == 2.0){ " +
 	    "	GetDiffuseColor();" +

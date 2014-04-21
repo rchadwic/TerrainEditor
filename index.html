@@ -51,6 +51,7 @@ a:hover {
 <script type="text/javascript" src="./Scripts/OSGJS/js/jquery-ui-1.8.18.custom.min.js"></script>
 
 
+
 <script type="text/javascript" src="./Scripts/swfobject.js"></script>
 <script type="text/javascript" src="./Scripts/downloadify.min.js"></script>
 <script type="text/javascript" src="./Scripts/OSGJS/js/stats.js"></script>
@@ -61,6 +62,7 @@ a:hover {
 <script type="text/javascript" src="./Scripts/OSGJS/js/osgGA.js"></script>
 <script type="text/javascript" src="./Scripts/OSGJS/js/osgViewer.js"></script>
 <script type="text/javascript" src="./Scripts/main.js"></script>
+<script type="text/javascript" src="./Scripts/togglecam.js"></script>
 <script type="text/javascript" src="./Scripts/drawing.js"></script>
 <script type="text/javascript" src="./Scripts/landscape.js"></script>
 <script type="text/javascript" src="./Scripts/ambientoccclusion.js"></script>
@@ -206,9 +208,9 @@ function refresh()
 {
     grframecount = 0;
     aoframecount = 0;
- Mousedown(-1,-1,1);
- Mouseup(-1,-1,1);
- WebGL.needsRefresh = false; 
+ 	Mousedown(-1,-1,1);
+ 	Mouseup(-1,-1,1);
+ 	WebGL.needsRefresh = false; 
 }
 function LoadLandscape(file)
 {
@@ -218,8 +220,12 @@ function LoadLandscape(file)
 		    	var gl = WebGL.gviewer.gl;
 		        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
 		        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, false);
-		        gl.bindTexture(gl.TEXTURE_2D, WebGL.DrawBufferTexture.textureObject);
+		        gl.bindTexture(gl.TEXTURE_2D, WebGL.DrawBufferCam.texA.textureObject);
 		        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, load.image);
+
+		        gl.bindTexture(gl.TEXTURE_2D, WebGL.DrawBufferCam.texB.textureObject);
+		        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, load.image);
+
 		        refresh();
 		        $("#loading").dialog("close");
 		}
@@ -795,6 +801,16 @@ $(document).ready(function(){
 	  });
 	
 	initWebGL("file:///C:/Development\\HTML5Game\\Assets\\Models\\matv01_veh.json", false, "Y", 1.0  );
+
+	window.setTimeout(function(){
+		
+		Mousedown(-1,-1, 1)
+	window.setTimeout(function(){
+		
+		Mouseup(-1,-1, 1)
+	},300);
+},300);
+	
 });
 </script>
 

@@ -7,46 +7,19 @@ http://creativecommons.org/licenses/by-nc-sa/3.0/
 
 function BuildSSBufferCamera() {
 
-    var draw_rtt = new osg.Camera();
-    draw_rtt.setName("rtt_drawcamera");
-    var draw_rttSize = [ 512, 512 ];
-    // rttSize = [1920,1200];
-    // rtt.setProjectionMatrix(osg.Matrix.makePerspective(60, 1, .1, 10000));
-    //rtt.setProjectionMatrix(osg.Matrix.makeOrtho(-1, 1, -1, 1, .1, 10000.0));
-    draw_rtt.setRenderOrder(osg.Camera.PRE_RENDER, 0);
-    draw_rtt.setReferenceFrame(osg.Transform.ABSOLUTE_RF);
-    draw_rtt.setViewport(new osg.Viewport(0, 0, draw_rttSize[0], draw_rttSize[1]));
-
-    var draw_rttTexture = new osg.Texture();
-
-    draw_rttTexture.wrap_s = 'CLAMP_TO_EDGE';
-    draw_rttTexture.wrap_t = 'CLAMP_TO_EDGE';
-    draw_rttTexture.setTextureSize(draw_rttSize[0], draw_rttSize[1]);
-    draw_rttTexture.setMinFilter('LINEAR');
-    draw_rttTexture.setMagFilter('LINEAR');
-
-    draw_rtt.attachTexture(gl.COLOR_ATTACHMENT0, draw_rttTexture, 0);
-
-    draw_rtt.setClearDepth(1.0);
-    draw_rtt.setClearMask(gl.DEPTH_BUFFER_BIT);
-    
-    // rtt.setStateSet(new osg.StateSet());
-   // draw_rtt.getOrCreateStateSet().setAttribute(GetPickShader());
-    draw_rtt.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
    
-    draw_rtt.setClearColor([ 0, 0, 0, 1 ]);
-    //rtt.getOrCreateStateSet().setAttribute(new osg.Depth('ALWAYS'));
-    //draw_rtt.getOrCreateStateSet().setAttribute(new osg.CullFace());
-   
-   // draw_rtt.getOrCreateStateSet().addUniform(osg.Uniform.createFloat3([1,1,1], "randomColor"));
-    WebGL.SSBufferCam = draw_rtt;
-    WebGL.SSBufferTexture = draw_rttTexture;
+    var togglecam = new toggleRTTCam();
+
+    WebGL.SSBufferCam = togglecam;
+    WebGL.SSBufferTexture = togglecam.texA;
     
     var quad =  osg.createTexuredQuad(-1,-1,0,
             2, 0 ,0,
             0, 2,0);
     quad.getOrCreateStateSet().setAttribute(GetSSShader());
-    quad.getOrCreateStateSet().setTextureAttribute(0,draw_rttTexture);
+
+    WebGL.SSBufferCam.registerStateSetTexture(quad.getOrCreateStateSet(),0);
+
   
     quad.getOrCreateStateSet().addUniform(WebGL.AOFrameCount);
     quad.getOrCreateStateSet().addUniform(WebGL.AOSampleVec);

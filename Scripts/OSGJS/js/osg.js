@@ -3542,10 +3542,10 @@ osg.FrameBufferObject.prototype = {
             } else {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
                 gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderbuffer);
-                status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-                if (status !== 0x8CD5) {
-                    osg.log("framebuffer error check " + status);
-                }
+                //status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+                //if (status !== 0x8CD5) {
+                //    osg.log("framebuffer error check " + status);
+                //}
             }
         } else {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);

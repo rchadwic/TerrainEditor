@@ -12,100 +12,102 @@ http://creativecommons.org/licenses/by-nc-sa/3.0/
 
 function BuildGodRaysAccumulatorCam() {
 
-    var rtt = new osg.Camera();
-    rtt.setName("rttgod_camera");
-    rttSize = [ 512, 512 ];
-    // rttSize = [1920,1200];
-    // rtt.setProjectionMatrix(osg.Matrix.makePerspective(60, 1, .1, 10000));
-    //rtt.setProjectionMatrix(osg.Matrix.makeOrtho(-1, 1, -1, 1, .1, 10000.0));
-    rtt.setRenderOrder(osg.Camera.PRE_RENDER, 0);
-    rtt.setReferenceFrame(osg.Transform.ABSOLUTE_RF);
-    rtt.setViewport(new osg.Viewport(0, 0, rttSize[0], rttSize[1]));
-
-    var rttTexture = new osg.Texture();
-
-    
-    rttTexture.wrap_s = 'CLAMP_TO_EDGE';
-    rttTexture.wrap_t = 'CLAMP_TO_EDGE';
-    rttTexture.setTextureSize(rttSize[0], rttSize[1]);
-    rttTexture.setMinFilter('LINEAR');
-    rttTexture.setMagFilter('LINEAR');
-
-    rtt.attachTexture(gl.COLOR_ATTACHMENT0, rttTexture, 0);
-
-    rtt.setClearDepth(1.0);
-    rtt.setClearMask(gl.DEPTH_BUFFER_BIT );
-    
-    // rtt.setStateSet(new osg.StateSet());
-    rtt.getOrCreateStateSet().setAttribute(GetGodRaysAccumulatorShader());
-    rtt.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
    
-    rtt.setClearColor([ 0, 0, 0, 1 ]);
-    rtt.getOrCreateStateSet().setAttribute(new osg.Depth('LESS',0.0,1000.0,true));
-    rtt.getOrCreateStateSet().setAttribute(new osg.CullFace("BACK"));
+    var togglecam = new toggleRTTCam();
+
+
+  	WebGL.GodRaysAccumulatorCam = togglecam;
+    WebGL.GodRaysAccumulatorTexture = togglecam.texA;
+
+
+    togglecam.camA.getOrCreateStateSet().setAttribute(GetGodRaysAccumulatorShader());
+    togglecam.camA.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
    
-    rtt.getOrCreateStateSet().addUniform(osg.Uniform.createFloat3([1,1,1], "randomColor"));
-    WebGL.GodRaysAccumulatorCam = rtt;
-    WebGL.GodRaysAccumulatorTexture = rttTexture;
+    togglecam.camA.setClearColor([ 0, 0, 0, 1 ]);
+    togglecam.camA.getOrCreateStateSet().setAttribute(new osg.Depth('LESS',0.0,1000.0,true));
+    togglecam.camA.getOrCreateStateSet().setAttribute(new osg.CullFace("BACK"));
+   
+    togglecam.camA.getOrCreateStateSet().addUniform(osg.Uniform.createFloat3([1,1,1], "randomColor"));
+
+    togglecam.camB.getOrCreateStateSet().setAttribute(GetGodRaysAccumulatorShader());
+    togglecam.camB.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
+   
+    togglecam.camB.setClearColor([ 0, 0, 0, 1 ]);
+    togglecam.camB.getOrCreateStateSet().setAttribute(new osg.Depth('LESS',0.0,1000.0,true));
+    togglecam.camB.getOrCreateStateSet().setAttribute(new osg.CullFace("BACK"));
+   
+    togglecam.camB.getOrCreateStateSet().addUniform(osg.Uniform.createFloat3([1,1,1], "randomColor"));
+    
+  
    
     var diffusetex3 = osg.Texture.create("./Assets/Textures/noise.jpg");
-    rtt.getOrCreateStateSet().setTexture(1, diffusetex3);
-    rtt.getOrCreateStateSet().setTexture(0, WebGL.GodRaysAccumulatorTexture);
-    rtt.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(1,"noisemap"));
-    rtt.getOrCreateStateSet().addUniform(WebGL.gTimeUniform);
-    rtt.getOrCreateStateSet().setTexture(2, WebGL.DrawBufferTexture);
-    rtt.getOrCreateStateSet().setTexture(4, WebGL.ShadowVolumeBufferTexture);
-    rtt.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(4,"godraysmap"));
+    togglecam.camA.getOrCreateStateSet().setTexture(1, diffusetex3);
+    
+    togglecam.camA.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(1,"noisemap"));
+    togglecam.camA.getOrCreateStateSet().addUniform(WebGL.gTimeUniform);
+
+    togglecam.camA.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(4,"godraysmap"));
+
+    WebGL.GodRaysAccumulatorCam.registerStateSetTexture(togglecam.camA.getOrCreateStateSet(),0);
+    WebGL.DrawBufferCam.registerStateSetTexture(togglecam.camA.getOrCreateStateSet(),2);
+    WebGL.ShadowVolumeBufferCam.registerStateSetTexture(togglecam.camA.getOrCreateStateSet(),4);
+
+    togglecam.camB.getOrCreateStateSet().setTexture(1, diffusetex3)
+
+
+    WebGL.GodRaysAccumulatorCam.registerStateSetTexture(togglecam.camB.getOrCreateStateSet(),0);
+    WebGL.DrawBufferCam.registerStateSetTexture(togglecam.camB.getOrCreateStateSet(),2);
+    WebGL.ShadowVolumeBufferCam.registerStateSetTexture(togglecam.camB.getOrCreateStateSet(),4);
+
+
+
+    togglecam.camB.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(1,"noisemap"));
+    togglecam.camB.getOrCreateStateSet().addUniform(WebGL.gTimeUniform);
+
+
+   
+    togglecam.camB.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(4,"godraysmap"));
+
+
     WebGL.GodRaysAccumulatorCam.addChild(WebGL.gLandscape);
     
     
-    rtt.getOrCreateStateSet().addUniform(WebGL.AOSampleVec);
+    togglecam.camA.getOrCreateStateSet().addUniform(WebGL.AOSampleVec);
     
     WebGL.GRFrameCount = osg.Uniform.createFloat1([1], "grframecount");
-    rtt.getOrCreateStateSet().addUniform(WebGL.GRFrameCount);
+    togglecam.camA.getOrCreateStateSet().addUniform(WebGL.GRFrameCount);
+    togglecam.camB.getOrCreateStateSet().addUniform(WebGL.GRFrameCount);
     
     BuildDepthBufferCam();
     WebGL.GodRaysAccumulatorCam.addChild(WebGL.DepthBufferCam);
-    rtt.getOrCreateStateSet().setTexture(5, WebGL.DepthBufferTexture);
-    rtt.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(5,"depthmap"));
+
+
+	WebGL.DepthBufferCam.registerStateSetTexture(togglecam.camA.getOrCreateStateSet(),5);
+    
+    togglecam.camA.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(5,"depthmap"));
+    WebGL.DepthBufferCam.registerStateSetTexture(togglecam.camB.getOrCreateStateSet(),5);
+    togglecam.camB.getOrCreateStateSet().addUniform(osg.Uniform.createInt1(5,"depthmap"));
 }
 
 
 function BuildDepthBufferCam() {
 
-    var rtt = new osg.Camera();
-    rtt.setName("rttdepth_camera");
-    rttSize = [ 512, 512 ];
-    // rttSize = [1920,1200];
-    // rtt.setProjectionMatrix(osg.Matrix.makePerspective(60, 1, .1, 10000));
-    //rtt.setProjectionMatrix(osg.Matrix.makeOrtho(-1, 1, -1, 1, .1, 10000.0));
-    rtt.setRenderOrder(osg.Camera.PRE_RENDER, 0);
-    rtt.setReferenceFrame(osg.Transform.ABSOLUTE_RF);
-    rtt.setViewport(new osg.Viewport(0, 0, rttSize[0], rttSize[1]));
+   var togglecam = new toggleRTTCam();
 
-    var rttTexture = new osg.Texture();
-
-    rttTexture.wrap_s = 'CLAMP_TO_EDGE';
-    rttTexture.wrap_t = 'CLAMP_TO_EDGE';
-    rttTexture.setTextureSize(rttSize[0], rttSize[1]);
-    rttTexture.setMinFilter('LINEAR');
-    rttTexture.setMagFilter('LINEAR');
-
-    rtt.attachTexture(gl.COLOR_ATTACHMENT0, rttTexture, 0);
-
-    rtt.setClearDepth(1.0);
-    rtt.setClearMask(gl.COLOR_BUFFER_BIT |gl.DEPTH_BUFFER_BIT );
-    
-    // rtt.setStateSet(new osg.StateSet());
-    rtt.getOrCreateStateSet().setAttribute(GetDepthShader());
-    rtt.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
+    togglecam.camA.getOrCreateStateSet().setAttribute(GetDepthShader());
+    togglecam.camA.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
    
-    rtt.setClearColor([ 0, 0, 0, 1 ]);
-    rtt.getOrCreateStateSet().setAttribute(new osg.Depth('LESS',0.0,1000.0,true));
-    rtt.getOrCreateStateSet().setAttribute(new osg.CullFace("BACK"));
+    togglecam.camA.getOrCreateStateSet().setAttribute(new osg.Depth('LESS',0.0,1000.0,true));
+    togglecam.camA.getOrCreateStateSet().setAttribute(new osg.CullFace("BACK"));
+
+    togglecam.camB.getOrCreateStateSet().setAttribute(GetDepthShader());
+    togglecam.camB.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
    
-    WebGL.DepthBufferCam = rtt;
-    WebGL.DepthBufferTexture = rttTexture;
+    togglecam.camB.getOrCreateStateSet().setAttribute(new osg.Depth('LESS',0.0,1000.0,true));
+    togglecam.camB.getOrCreateStateSet().setAttribute(new osg.CullFace("BACK"));
+   
+    WebGL.DepthBufferCam = togglecam;
+    WebGL.DepthBufferTexture = togglecam.texA;
     WebGL.DepthBufferCam.addChild(WebGL.gLandscape);
     
 }
@@ -114,40 +116,31 @@ function BuildDepthBufferCam() {
 
 function BuildShadowVolumeBufferCam() {
 
-    var rtt = new osg.Camera();
-    rtt.setName("rttgod_camera");
-    rttSize = [ 512, 512 ];
-    // rttSize = [1920,1200];
-    // rtt.setProjectionMatrix(osg.Matrix.makePerspective(60, 1, .1, 10000));
-    //rtt.setProjectionMatrix(osg.Matrix.makeOrtho(-1, 1, -1, 1, .1, 10000.0));
-    rtt.setRenderOrder(osg.Camera.PRE_RENDER, 0);
-    rtt.setReferenceFrame(osg.Transform.ABSOLUTE_RF);
-    rtt.setViewport(new osg.Viewport(0, 0, rttSize[0], rttSize[1]));
-
-    var rttTexture = new osg.Texture();
-
-    rttTexture.wrap_s = 'CLAMP_TO_EDGE';
-    rttTexture.wrap_t = 'CLAMP_TO_EDGE';
-    rttTexture.setTextureSize(rttSize[0], rttSize[1]);
-    rttTexture.setMinFilter('LINEAR');
-    rttTexture.setMagFilter('LINEAR');
-
-    rtt.attachTexture(gl.COLOR_ATTACHMENT0, rttTexture, 0);
-
-    rtt.setClearDepth(1.0);
-    rtt.setClearMask(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    var togglecam = new toggleRTTCam();
     
     // rtt.setStateSet(new osg.StateSet());
-    rtt.getOrCreateStateSet().setAttribute(GetShadowVolumeShader());
-    rtt.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
+    togglecam.camA.getOrCreateStateSet().setAttribute(GetShadowVolumeShader());
+    togglecam.camA.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
    
-    rtt.setClearColor([ 0, 0, 0, 1 ]);
-    rtt.getOrCreateStateSet().setAttribute(new osg.Depth('LESS',0.0,1000.0,true));
-    rtt.getOrCreateStateSet().setAttribute(new osg.CullFace("DISABLE"));
+    togglecam.camA.setClearColor([ 0, 0, 0, 1 ]);
+    togglecam.camA.getOrCreateStateSet().setAttribute(new osg.Depth('LESS',0.0,1000.0,true));
+    togglecam.camA.getOrCreateStateSet().setAttribute(new osg.CullFace("DISABLE"));
    
-    rtt.getOrCreateStateSet().addUniform(osg.Uniform.createFloat3([1,1,1], "randomColor"));
-    WebGL.ShadowVolumeBufferCam = rtt;
-    WebGL.ShadowVolumeBufferTexture = rttTexture;
+    togglecam.camA.getOrCreateStateSet().addUniform(osg.Uniform.createFloat3([1,1,1], "randomColor"));
+
+
+    // rtt.setStateSet(new osg.StateSet());
+    togglecam.camB.getOrCreateStateSet().setAttribute(GetShadowVolumeShader());
+    togglecam.camB.getOrCreateStateSet().setAttribute(new osg.BlendFuncSeparate("ONE", "ZERO","ONE", "ZERO"));
+   
+    togglecam.camB.setClearColor([ 0, 0, 0, 1 ]);
+    togglecam.camB.getOrCreateStateSet().setAttribute(new osg.Depth('LESS',0.0,1000.0,true));
+    togglecam.camB.getOrCreateStateSet().setAttribute(new osg.CullFace("DISABLE"));
+   
+    togglecam.camB.getOrCreateStateSet().addUniform(osg.Uniform.createFloat3([1,1,1], "randomColor"));
+
+    WebGL.ShadowVolumeBufferCam = togglecam;
+    WebGL.ShadowVolumeBufferTexture = togglecam.texA;
    
     WebGL.ShadowVolumeBufferCam.addChild(WebGL.gModelRoot);
    

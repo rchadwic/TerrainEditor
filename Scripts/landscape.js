@@ -101,18 +101,24 @@ function SetupTerrainHeight()
 	 //   landscapeTexture = osg.Texture.createFromCanvas(landscapecanvas);
 	 //   landscapeTexture.compile();
 	    
-	    newstateset.setTexture(2, WebGL.DrawBufferTexture);
-	  
-	    newstateset.setTexture(7,WebGL.DrawTextureBufferTexture); 
+	    WebGL.DrawBufferCam.registerStateSetTexture(newstateset,2);
+	    
+	    WebGL.DrawTextureBufferCam.registerStateSetTexture(newstateset,7);
+
+	    
 	    newstateset.addUniform(osg.Uniform.createInt1(7,"mixmap"));
-	    newstateset.setTextureAttribute(4,WebGL.AOBufferTexture);
-	    newstateset.setTextureAttribute(3,WebGL.SSBufferTexture);
+
+
+ 		WebGL.AOBufferCam.registerStateSetTexture(newstateset,4);
+
+		
+	    WebGL.SSBufferCam.registerStateSetTexture(newstateset,3);
 	    newstateset.addUniform(osg.Uniform.createInt1(4,"aomap"));
 	    
 	    newstateset.setTexture(8,WebGL.GodRaysAccumulatorTexture); 
 	    newstateset.addUniform(osg.Uniform.createInt1(8,"godraysmap"));
 	    
-	    newstateset.setTexture(9,WebGL.GIBufferTexture); 
+	    WebGL.GIBufferCam.registerStateSetTexture(newstateset,9);
 	    newstateset.addUniform(osg.Uniform.createInt1(9,"gimap"));
 	    
 	    WebGL.gModelRoot.setStateSet(newstateset);
